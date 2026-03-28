@@ -1,5 +1,7 @@
 # jiapeng-skills
 
+[中文](README.zh-CN.md) | English
+
 A collection of reusable skills by [hongjiapeng](https://github.com/hongjiapeng), focused on Windows automation, system tooling, and practical agent workflows.
 
 This repository is a **monorepo for ClawHub / OpenClaw skills**.  
