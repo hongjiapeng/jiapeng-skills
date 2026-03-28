@@ -27,9 +27,8 @@ jiapeng-skills/
 ├─ README.md
 ├─ skills/
 │  ├─ winget-package-manager/
-│  │  ├─ SKILL.md
-│  │  ├─ README.md
-│  │  └─ winget-skill.ps1
+│  │  ├─ scripts/
+│  │  └─ SKILL.md
 │  └─ ...
 ├─ docs/
 └─ scripts/
