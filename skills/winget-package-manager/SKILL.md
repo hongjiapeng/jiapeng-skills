@@ -5,7 +5,6 @@ description: |
   Provides safe software package operations: search, show, download, install, upgrade, uninstall, and list-upgrades.
   All operations return structured JSON output with consistent schema.
   Designed for Windows Agent integration with security-first approach.
-version: 1.0.0
 metadata:
   openclaw:
     requires:
