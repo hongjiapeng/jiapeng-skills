@@ -54,6 +54,7 @@ Do **not** use this skill for:
 6. Do not transform this skill into a generic PowerShell executor
 7. Treat `uninstall` as high-risk — always require an exact package ID
 8. **Never automatically retry** `install`, `upgrade`, or `uninstall` if they fail. Report the failure to the user and let them decide. Retrying may trigger repeated UAC prompts or uninstaller dialogs
+9. **Disambiguation is mandatory**: When the user's request matches multiple packages (e.g. "uninstall DevToy" matches both `DevToys.DevToys` and `DevToys.DevToys.Preview`), you **must** list all matching candidates and ask the user which one(s) to operate on. **Never** silently operate on all matches. This applies to `install`, `upgrade`, and especially `uninstall`
 
 ## Allowed Operations
 
