@@ -62,7 +62,7 @@ function Convert-SearchOutputToCandidates {
     foreach ($line in $lines) {
         if ($line -match '^\s*Name\s+Id\s+Version') { continue }
         if ($line -match '^\s*-+\s+-+\s+-+') { continue }
-        if ($line -match '[█▒░\x{2588}\x{2592}\x{2591}]') { continue }
+        if ($line -match '[\u2580-\u259F]') { continue }
         if ($line -match '^\s*(.+?)\s{2,}([A-Za-z0-9\.\-_]+)\s{2,}(.+?)\s*$') {
             $candidates.Add([ordered]@{
                 name    = $Matches[1].Trim()
