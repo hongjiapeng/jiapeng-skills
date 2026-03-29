@@ -61,9 +61,11 @@ function Convert-SearchOutputToCandidates {
 
     foreach ($line in $lines) {
         if ($line -match '^\s*Name\s+Id\s+Version') { continue }
-        if ($line -match '^\s*-+\s+-+\s+-+') { continue }
+        if ($line -match '^\s*-+\s*-+\s*-+') { continue }
         if ($line -match '[\u2580-\u259F]') { continue }
-        if ($line -match '^\s*(.+?)\s{2,}([A-Za-z0-9\.\-_]+)\s{2,}(.+?)\s*$') {
+        # ID must contain a dot (reverse-domain style, e.g. "DevToys-app.DevToys")
+        # This anchors the split so package names with spaces don't break parsing
+        if ($line -match '^\s*(.+?)\s+([\w][\w\-]*\.[\w\.\-]+)\s+(.+?)\s*$') {
             $candidates.Add([ordered]@{
                 name    = $Matches[1].Trim()
                 id      = $Matches[2].Trim()
