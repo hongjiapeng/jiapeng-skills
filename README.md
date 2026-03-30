@@ -22,12 +22,25 @@ This repo is used to:
 
 ---
 
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| [winget-package-manager](skills/winget-package-manager/) | Controlled Windows package management via winget. Safe search, install, upgrade, uninstall — structured JSON output. |
+| [clipvault](skills/clipvault/) | Transcribe, summarize, and archive online video/article content into a personal knowledge vault. Supports YouTube, Bilibili, 小红书, X, TikTok, and more. |
+
+> More skills will be added over time. Stay tuned!
+
+---
+
 ## Repository structure
 
 ```text
 jiapeng-skills/
 ├─ README.md
 ├─ skills/
+│  ├─ clipvault/
+│  │  └─ SKILL.md
 │  ├─ winget-package-manager/
 │  │  ├─ scripts/
 │  │  └─ SKILL.md

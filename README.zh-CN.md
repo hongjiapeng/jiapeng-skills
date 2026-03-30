@@ -1,6 +1,6 @@
 # jiapeng-skills
 
-English | [中文](README.zh-CN.md)
+[English](README.md) | 中文
 
 由 [hongjiapeng](https://github.com/hongjiapeng) 创建的可复用技能合集，专注于 Windows 自动化、系统工具和实用的 Agent 工作流。
 
@@ -22,12 +22,25 @@ English | [中文](README.zh-CN.md)
 
 ---
 
+## 技能列表
+
+| 技能 | 说明 |
+|------|------|
+| [winget-package-manager](skills/winget-package-manager/) | 基于 winget 的 Windows 软件包管理技能，支持搜索、安装、升级、卸载等操作，返回结构化 JSON 输出。 |
+| [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
+
+> 更多技能将持续更新，敬请关注！
+
+---
+
 ## 仓库结构
 
 ```text
 jiapeng-skills/
 ├─ README.md
 ├─ skills/
+│  ├─ clipvault/
+│  │  └─ SKILL.md
 │  ├─ winget-package-manager/
 │  │  ├─ scripts/
 │  │  └─ SKILL.md
