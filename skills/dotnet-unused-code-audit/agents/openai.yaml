@@ -1,0 +1,4 @@
+interface:
+  display_name: ".NET Unused Code Audit"
+  short_description: "Find .NET stale projects, files, and symbols"
+  default_prompt: "Use $dotnet-unused-code-audit to analyze this .NET repository for unused-code cleanup candidates."

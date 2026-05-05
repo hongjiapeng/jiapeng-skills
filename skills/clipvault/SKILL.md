@@ -76,19 +76,32 @@ https?://[^\s]+
 
 ## Execution
 
+**CRITICAL**: Always invoke the venv python **by absolute path**.
+Do NOT use `python` or `py` — they resolve to the system interpreter
+which has CPU-only PyTorch and will cause Whisper to run on CPU for hours.
+
 ```powershell
 # Auto-locate project dir (find pyproject.toml with name="clipvault")
-$project = (Get-ChildItem -Path $env:WORKSPACE_FOLDER -Filter "pyproject.toml" -Recurse -Depth 1 |
-    Where-Object { (Get-Content $_.FullName -Raw) -match 'name\s*=\s*"clipvault"' } |
-    Select-Object -First 1).DirectoryName
-if (-not $project) { $project = $env:WORKSPACE_FOLDER }
+# Search common locations — do NOT rely on $env:WORKSPACE_FOLDER
+$searchRoots = @("D:\Dev\Projects", $PWD.Path)
+if ($env:WORKSPACE_FOLDER) { $searchRoots = @($env:WORKSPACE_FOLDER) + $searchRoots }
+
+$project = $null
+foreach ($root in $searchRoots) {
+    $match = Get-ChildItem -Path $root -Filter "pyproject.toml" -Recurse -Depth 2 -ErrorAction SilentlyContinue |
+        Where-Object { (Get-Content $_.FullName -Raw) -match 'name\s*=\s*"clipvault"' } |
+        Select-Object -First 1
+    if ($match) { $project = $match.DirectoryName; break }
+}
+if (-not $project) { Write-Host "ERROR: Could not find clipvault project" -ForegroundColor Red; exit 1 }
 Set-Location $project
 
 # 1) Ensure venv exists; bootstrap via setup.bat if missing
-if (-not (Test-Path ".\venv\Scripts\python.exe")) {
+$venvPython = Join-Path $project "venv\Scripts\python.exe"
+if (-not (Test-Path $venvPython)) {
     Write-Host "venv not found, running setup.bat ..." -ForegroundColor Yellow
     cmd /c setup.bat
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path ".\venv\Scripts\python.exe")) {
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $venvPython)) {
         Write-Host "Setup failed — check setup.bat output" -ForegroundColor Red
         exit 1
     }
@@ -100,11 +113,13 @@ if (-not (Test-Path ".\.env")) {
     exit 1
 }
 
-# 3) Run pipeline
-& ".\venv\Scripts\python.exe" -m clipvault "<EXTRACTED_URL>"
+# 3) Run pipeline — MUST use $venvPython, never bare `python`
+# Use CLI for real-time logging
+& $venvPython -m clipvault "<EXTRACTED_URL>" --language <LANG>
 
-# Legacy entry still works:
-# & ".\venv\Scripts\python.exe" .\main.py "<EXTRACTED_URL>"
+# Or with custom Whisper model (faster):
+# $env:WHISPER_MODEL = "small"
+# & $venvPython -m clipvault "<EXTRACTED_URL>"
 ```
 
 ## CLI Reference
@@ -187,9 +202,12 @@ If Notion write succeeds, you MUST output a clickable Notion link after the JSON
 
 If duplicate URL detected and an existing Notion page is reused, output that page link as well.
 
-## Programmatic Usage (SkillService)
+## Programmatic Usage (Alternative)
+
+**Default is CLI** — use CLI for real-time logs as shown above.
 
 ```python
+# Only if you need programmatic access:
 from clipvault.skill import SkillService
 
 svc = SkillService()
