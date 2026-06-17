@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adobe Leave Organizations"
+  short_description: "Batch leave Adobe organizations safely"
+  default_prompt: "Use $adobe-leave-organizations to leave Adobe organizations while keeping named organizations."

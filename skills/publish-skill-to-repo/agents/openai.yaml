@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish Skill to Repo"
+  short_description: "Move skills into a repo and link them"
+  default_prompt: "Use $publish-skill-to-repo to publish a local Codex skill into a Git repository while keeping Codex discovery working."
