@@ -26,7 +26,7 @@
 
 | 技能 | 说明 |
 |------|------|
-| [winget-package-manager](skills/winget-package-manager/) | 基于 winget 的 Windows 软件包管理技能，支持搜索、安装、升级、卸载等操作，返回结构化 JSON 输出。 |
+| [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget，支持搜索、安装、升级、本机应用解析和安全卸载，返回结构化 JSON 输出。 |
 | [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
 
 > 更多技能将持续更新，敬请关注！
@@ -41,7 +41,7 @@ jiapeng-skills/
 ├─ skills/
 │  ├─ clipvault/
 │  │  └─ SKILL.md
-│  ├─ winget-package-manager/
+│  ├─ windows-app-manager/
 │  │  ├─ scripts/
 │  │  └─ SKILL.md
 │  └─ ...

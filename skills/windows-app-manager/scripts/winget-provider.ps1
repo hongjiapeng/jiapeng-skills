@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Provides controlled and secure wrapper functions for winget operations.
-    Designed to be dot-sourced by winget-skill.ps1.
+    Designed to be dot-sourced by windows-app-manager.ps1.
 #>
 
 #Requires -Version 5.1
@@ -56,7 +56,7 @@ function Test-SafeDownloadPath {
 function Convert-SearchOutputToCandidates {
     param([Parameter(Mandatory)][string]$Text)
 
-    $lines = $Text -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    $lines = $Text -split '\r\n|\n|\r' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
     $candidates = [System.Collections.Generic.List[object]]::new()
 
     foreach ($line in $lines) {
@@ -75,6 +75,122 @@ function Convert-SearchOutputToCandidates {
     }
 
     return , $candidates.ToArray()
+}
+
+function Convert-InstalledListOutputToCandidates {
+    param([Parameter(Mandatory)][string]$Text)
+
+    $lines = $Text -split '\r\n|\n|\r' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    $candidates = [System.Collections.Generic.List[object]]::new()
+    $header = $lines | Where-Object { $_ -match '(^|\s)ID(\s|$)' -and $_ -match 'Version' } | Select-Object -First 1
+
+    if ($header) {
+        $idStart = $header.IndexOf('ID')
+        $versionMatch = [regex]::Match($header, 'Version', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        $versionStart = $versionMatch.Index
+        $sourceMatch = [regex]::Match($header, 'Source', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        $sourceStart = if ($sourceMatch.Success -and $sourceMatch.Index -gt $versionStart) { $sourceMatch.Index } else { -1 }
+        $minWidth = if ($sourceStart -gt 0) { $sourceStart + 1 } else { $versionStart + 1 }
+
+        foreach ($line in $lines) {
+            if ($line -eq $header) { continue }
+            if ($line.Trim() -match '^-+$') { continue }
+            if ($line.Length -lt $versionStart) { continue }
+
+            $padded = $line.PadRight($minWidth)
+            $name = $padded.Substring(0, $idStart).Trim()
+            $id = $padded.Substring($idStart, $versionStart - $idStart).Trim()
+            $version = if ($sourceStart -gt 0) {
+                $padded.Substring($versionStart, $sourceStart - $versionStart).Trim()
+            } else {
+                $padded.Substring($versionStart).Trim()
+            }
+            $source = if ($sourceStart -gt 0 -and $line.Length -gt $sourceStart) { $line.Substring($sourceStart).Trim() } else { "" }
+
+            if ([string]::IsNullOrWhiteSpace($name) -or [string]::IsNullOrWhiteSpace($id)) { continue }
+
+            $candidate = [ordered]@{
+                name    = $name
+                id      = $id
+                version = $version
+            }
+            if (-not [string]::IsNullOrWhiteSpace($source)) { $candidate.source = $source }
+            if ($id.IndexOf([char]0x2026) -ge 0) { $candidate.truncated = $true }
+
+            $candidates.Add($candidate)
+        }
+
+        return $candidates.ToArray()
+    }
+
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        if ($trimmed -match '^-+$') { continue }
+
+        $parts = @([regex]::Split($trimmed, '\s{2,}') | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($parts.Count -lt 3) { continue }
+
+        if ($parts[1] -ieq 'Id' -or $parts[1] -eq 'ID') { continue }
+        if ($parts[0] -match '^-+$' -or $parts[1] -match '^-+$') { continue }
+
+        $candidate = [ordered]@{
+            name    = $parts[0].Trim()
+            id      = $parts[1].Trim()
+            version = $parts[2].Trim()
+        }
+
+        if ($parts.Count -ge 4) { $candidate.available = $parts[3].Trim() }
+        if ($parts.Count -ge 5) { $candidate.source = $parts[4].Trim() }
+
+        $candidates.Add($candidate)
+    }
+
+    return $candidates.ToArray()
+}
+
+function Convert-InstalledDetailsOutputToCandidates {
+    param([Parameter(Mandatory)][string]$Text)
+
+    $lines = $Text -split '\r\n|\n|\r'
+    $candidates = [System.Collections.Generic.List[object]]::new()
+    $current = $null
+
+    foreach ($line in $lines) {
+        if ($line -match '^\s*(?:\(\d+/\d+\)\s+)?(.+?)\s+\[(.+)\]\s*$') {
+            if ($null -ne $current) { $candidates.Add($current) }
+            $current = [ordered]@{
+                name    = $Matches[1].Trim()
+                id      = $Matches[2].Trim()
+                version = ""
+            }
+            continue
+        }
+
+        if ($null -eq $current) { continue }
+
+        if ($line -match '^\s*([^:]+):\s*(.+?)\s*$') {
+            $key = $Matches[1].Trim()
+            $value = $Matches[2].Trim()
+
+            if ($key -eq 'Version' -or [string]::IsNullOrWhiteSpace($current.version)) {
+                $current.version = $value
+            } elseif ($key -eq 'Publisher') {
+                $current.publisher = $value
+            } elseif ($key -eq 'Installer Type') {
+                $current.installer_type = $value
+            } elseif ($key -eq 'Installed Scope') {
+                $current.scope = $value
+            } elseif ($key -eq 'Install Location') {
+                $current.install_location = $value
+            } elseif ($key -eq 'Package Family Name') {
+                $current.package_family_name = $value
+            }
+        }
+    }
+
+    if ($null -ne $current) { $candidates.Add($current) }
+
+    return $candidates.ToArray()
 }
 
 function Invoke-WingetCommand {
@@ -310,7 +426,7 @@ function Uninstall-WingetPackage {
                  "--accept-source-agreements", "--silent", "--exact")
     $result = Invoke-WingetCommand -Arguments $cmdArgs
 
-    # winget exit code alone is unreliable — some uninstallers return 0 even when cancelled.
+    # winget exit code alone is unreliable - some uninstallers return 0 even when cancelled.
     # Verify by checking if the package is still listed after uninstall.
     $verified = $false
     if ($result.ExitCode -eq 0) {
@@ -337,6 +453,47 @@ function Uninstall-WingetPackage {
             "Uninstall reported success but package still appears installed. The uninstaller may have been cancelled."
         } else {
             "Uninstall failed"
+        }
+    }
+}
+
+function Resolve-InstalledWingetPackage {
+    param([Parameter(Mandatory)][string]$Query)
+
+    $cmdArgs = @("list", "--name", $Query, "--details", "--accept-source-agreements")
+    $result = Invoke-WingetCommand -Arguments $cmdArgs
+    if ([string]::IsNullOrWhiteSpace($result.Stdout)) {
+        $candidates = @()
+    } else {
+        $candidates = @(Convert-InstalledDetailsOutputToCandidates -Text $result.Stdout)
+    }
+    if ($candidates.Count -eq 0 -and -not [string]::IsNullOrWhiteSpace($result.Stdout)) {
+        $candidates = @(Convert-InstalledListOutputToCandidates -Text $result.Stdout)
+    }
+
+    $matchState = if ($candidates.Count -eq 0) {
+        "none"
+    } elseif ($candidates.Count -eq 1) {
+        "single"
+    } else {
+        "multiple"
+    }
+
+    return [ordered]@{
+        success     = ($result.ExitCode -eq 0 -and $candidates.Count -gt 0)
+        action      = "resolve-installed"
+        query       = $Query
+        candidates  = $candidates
+        match_state = $matchState
+        stdout      = $result.Stdout
+        stderr      = $result.Stderr
+        exit_code   = $result.ExitCode
+        summary     = if ($candidates.Count -eq 1) {
+            "Resolved one installed package for '$Query'"
+        } elseif ($candidates.Count -gt 1) {
+            "Resolved multiple installed packages for '$Query'; disambiguation required"
+        } else {
+            "No installed package matched '$Query'"
         }
     }
 }

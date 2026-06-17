@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-    Winget Package Manager Skill - Main Entry Point
+    Windows App Manager Skill - Main Entry Point
 
 .DESCRIPTION
-    Controlled Windows package management skill using winget.
+    Controlled Windows app management skill using the winget provider.
     Returns structured JSON for all operations.
 
 .EXAMPLE
-    .\winget-skill.ps1 -Action search -Query "Chrome"
+    .\windows-app-manager.ps1 -Action search -Query "Chrome"
 .EXAMPLE
-    .\winget-skill.ps1 -Action install -PackageId Microsoft.VisualStudioCode -Exact
+    .\windows-app-manager.ps1 -Action install -PackageId Microsoft.VisualStudioCode -Exact
 .EXAMPLE
-    .\winget-skill.ps1 -Action list-upgrades
+    .\windows-app-manager.ps1 -Action list-upgrades
 #>
 
 #Requires -Version 5.1
@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('search', 'show', 'download', 'install', 'upgrade', 'uninstall', 'list-upgrades')]
+    [ValidateSet('search', 'show', 'download', 'install', 'upgrade', 'uninstall', 'resolve-installed', 'list-upgrades')]
     [string]$Action,
 
     [string]$Query,
@@ -38,7 +38,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # Import wrapper functions
-. (Join-Path $PSScriptRoot "winget-wrapper.ps1")
+. (Join-Path $PSScriptRoot "winget-provider.ps1")
 
 # --- Helpers ---
 
@@ -88,6 +88,10 @@ try {
         'uninstall' {
             if (-not $PackageId) { Exit-WithError "PackageId parameter is required for uninstall" }
             Uninstall-WingetPackage -PackageId $PackageId -Source $Source
+        }
+        'resolve-installed' {
+            if (-not $Query) { Exit-WithError "Query parameter is required for resolve-installed" }
+            Resolve-InstalledWingetPackage -Query $Query
         }
         'list-upgrades' {
             Get-WingetUpgradeablePackages -Source $Source
