@@ -28,6 +28,7 @@
 |------|------|
 | [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget，支持搜索、安装、升级、本机应用解析和安全卸载，返回结构化 JSON 输出。 |
 | [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
+| [dev-setup](skills/dev-setup/) | 一键初始化新 Windows 开发机：标准目录结构、Git 双身份自动切换（个人 / 公司）、个人项目一键 Clone。 |
 
 > 更多技能将持续更新，敬请关注！
 

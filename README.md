@@ -28,6 +28,7 @@ This repo is used to:
 |-------|-------------|
 | [windows-app-manager](skills/windows-app-manager/) | Controlled Windows app management, currently powered by winget. Safe search, install, upgrade, local app resolution, and uninstall with structured JSON output. |
 | [clipvault](skills/clipvault/) | Transcribe, summarize, and archive online video/article content into a personal knowledge vault. Supports YouTube, Bilibili, 小红书, X, TikTok, and more. |
+| [dev-setup](skills/dev-setup/) | Bootstrap a new Windows dev machine with a standard directory layout, Git identity auto-switching (personal vs work), and personal repo cloning. |
 
 > More skills will be added over time. Stay tuned!
 
