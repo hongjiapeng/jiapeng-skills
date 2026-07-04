@@ -34,6 +34,44 @@ This repo is used to:
 
 ---
 
+## Setup: make skills available to agents
+
+VS Code Copilot agents scan `%USERPROFILE%\.agents\skills\` to discover available skills.
+The setup script [`scripts/Link-Skills.ps1`](scripts/Link-Skills.ps1) creates **directory junctions** from that location into this repository, so skills stay version-controlled here while being globally available to agents.
+
+For the default setup, you can double-click [`scripts/Link-Skills.cmd`](scripts/Link-Skills.cmd).
+It runs the PowerShell script and keeps the window open so you can read the result.
+
+```powershell
+# Link all skills
+.\scripts\Link-Skills.ps1
+
+# Same default setup through the double-click wrapper
+.\scripts\Link-Skills.cmd
+
+# Or link a specific skill only
+.\scripts\Link-Skills.ps1 -SkillName dev-setup
+
+# Optional: specify a custom target directory
+.\scripts\Link-Skills.ps1 -AgentsSkillsDir "D:\other\.agents\skills"
+```
+
+The script is safe to re-run: already linked skills are skipped, and conflicts are reported without overwriting existing files.
+
+### Why junctions, not shortcuts?
+
+| | Directory Junction | Windows Shortcut (.lnk) |
+|---|---|---|
+| **Level** | NTFS filesystem | Application-layer file |
+| **Transparent to programs** | Yes, looks like a real folder | No, tools must explicitly resolve it |
+| **Icon in Explorer** | Normal folder, no arrow | Folder with arrow overlay |
+| **Works with VS Code / agents** | Yes | No |
+| **Admin required** | No | No |
+
+Junctions are handled by the operating system at the filesystem layer; any program that opens the path sees the real directory contents directly.
+
+---
+
 ## Repository structure
 
 ```text
@@ -48,3 +86,4 @@ jiapeng-skills/
 │  └─ ...
 ├─ docs/
 └─ scripts/
+```

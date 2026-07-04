@@ -34,6 +34,44 @@
 
 ---
 
+## 初始化：让 Agent 可以发现技能
+
+VS Code Copilot Agent 会扫描 `%USERPROFILE%\.agents\skills\` 来发现可用技能。
+初始化脚本 [`scripts/Link-Skills.ps1`](scripts/Link-Skills.ps1) 会从该目录向本仓库创建 **目录联接（Junction）**，技能文件仍在仓库中统一做版本管理，同时对 Agent 全局可见。
+
+默认初始化时，可以直接双击 [`scripts/Link-Skills.cmd`](scripts/Link-Skills.cmd)。
+它会调用 PowerShell 脚本，并在结束后保留窗口，方便查看执行结果。
+
+```powershell
+# 链接全部技能
+.\scripts\Link-Skills.ps1
+
+# 也可以通过双击入口执行同样的默认初始化
+.\scripts\Link-Skills.cmd
+
+# 或只链接指定技能
+.\scripts\Link-Skills.ps1 -SkillName dev-setup
+
+# 可选：指定自定义目标目录
+.\scripts\Link-Skills.ps1 -AgentsSkillsDir "D:\other\.agents\skills"
+```
+
+脚本可以安全地重复运行：已链接的技能会直接跳过，冲突项只会警告，不会覆盖现有文件。
+
+### 为什么用 Junction 而不是快捷方式？
+
+| | 目录联接（Junction） | Windows 快捷方式（.lnk） |
+|---|---|---|
+| **层级** | NTFS 文件系统级 | 应用层普通文件 |
+| **对程序透明** | 是，看起来就是真实文件夹 | 否，工具需要主动解析 `.lnk` |
+| **资源管理器图标** | 普通文件夹，无箭头 | 文件夹带小箭头 |
+| **VS Code / Agent 可用** | 是 | 否 |
+| **需要管理员权限** | 否 | 否 |
+
+Junction 由操作系统在文件系统层处理，任何程序打开该路径都会直接看到真实目录内容，无需额外适配。
+
+---
+
 ## 仓库结构
 
 ```text
