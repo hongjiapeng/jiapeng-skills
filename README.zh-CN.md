@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-由 [hongjiapeng](https://github.com/hongjiapeng) 创建的可复用技能合集，专注于 Windows 自动化、系统工具和实用的 Agent 工作流。
+由 [hongjiapeng](https://github.com/hongjiapeng) 创建的可复用技能合集，专注于 Windows 自动化、工作站初始化、系统诊断和实用的 Agent 工作流。
 
 本仓库是一个 **ClawHub / OpenClaw 技能的 Monorepo**。  
 每个技能都独立存放在各自的文件夹中，可单独发布。
@@ -24,13 +24,19 @@
 
 ## 技能列表
 
-| 技能 | 说明 |
-|------|------|
-| [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget，支持搜索、安装、升级、本机应用解析和安全卸载，返回结构化 JSON 输出。 |
-| [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
-| [dev-setup](skills/dev-setup/) | 一键初始化新 Windows 开发机：标准目录结构、Git 双身份自动切换（个人 / 公司）、个人项目一键 Clone。 |
+| Id | 技能 | 说明 |
+|----|------|------|
+| 001 | [adobe-leave-organizations](skills/adobe-leave-organizations/) | 自动从 Adobe Account 企业/团队组织中退出，同时保留指定组织；包含登录、资料选择、重复认证和最终确认页面的安全浏览器自动化流程。 |
+| 002 | [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
+| 003 | [dev-setup](skills/dev-setup/) | 初始化新 Windows 开发机：标准目录结构、个人/工作 Git 身份配置，以及个人仓库克隆。 |
+| 004 | [directory-lock-detector](skills/directory-lock-detector/) | 通过 WMI 和 PowerShell 模块扫描，检测哪个进程正在锁定或占用某个 Windows 目录。 |
+| 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | 审计 C#/.NET 与 Visual Studio 仓库中的保守清理候选项，包括未使用代码、陈旧项目、不可达解决方案节点和生成产物。 |
+| 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | 诊断并修复 Windows UWP/AppContainer 应用因本地代理 loopback 限制导致的打开、登录、下载或联网失败。 |
+| 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | 将本地 Codex skill 发布到 Git 仓库，同时通过目录联接和校验流程保持 Codex skill discovery 可用。 |
+| 008 | [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget；支持搜索、详情查看、下载安装包、安装、升级、卸载、本机应用解析和升级列表，并返回结构化 JSON 输出。 |
+| 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | 设计干净、安全、按角色适配的 Windows 工作站结构，覆盖分区、文件夹、工作/个人隔离、媒体、备份、同步和多电脑场景。 |
 
-> 更多技能将持续更新，敬请关注！
+每个目录都是自包含的 skill。部分 skill 会在 `SKILL.md` 之外附带脚本、模板、参考资料或 agent manifest。
 
 ---
 
@@ -77,13 +83,19 @@ Junction 由操作系统在文件系统层处理，任何程序打开该路径�
 ```text
 jiapeng-skills/
 ├─ README.md
+├─ README.zh-CN.md
+├─ scripts/
+│  ├─ Link-Skills.cmd
+│  └─ Link-Skills.ps1
 ├─ skills/
+│  ├─ adobe-leave-organizations/
 │  ├─ clipvault/
-│  │  └─ SKILL.md
+│  ├─ dev-setup/
+│  ├─ directory-lock-detector/
+│  ├─ dotnet-unused-code-audit/
+│  ├─ fix-uwp-proxy-loopback/
+│  ├─ publish-skill-to-repo/
 │  ├─ windows-app-manager/
-│  │  ├─ scripts/
-│  │  └─ SKILL.md
-│  └─ ...
-├─ docs/
-└─ scripts/
+│  └─ windows-workstation-architect/
+└─ ...
 ```

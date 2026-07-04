@@ -2,7 +2,7 @@
 
 [中文](README.zh-CN.md) | English
 
-A collection of reusable skills by [hongjiapeng](https://github.com/hongjiapeng), focused on Windows automation, system tooling, and practical agent workflows.
+A collection of reusable skills by [hongjiapeng](https://github.com/hongjiapeng), focused on Windows automation, workstation setup, system diagnostics, and practical agent workflows.
 
 This repository is a **monorepo for ClawHub / OpenClaw skills**.  
 Each skill lives in its own folder and can be published independently.
@@ -24,13 +24,19 @@ This repo is used to:
 
 ## Skills
 
-| Skill | Description |
-|-------|-------------|
-| [windows-app-manager](skills/windows-app-manager/) | Controlled Windows app management, currently powered by winget. Safe search, install, upgrade, local app resolution, and uninstall with structured JSON output. |
-| [clipvault](skills/clipvault/) | Transcribe, summarize, and archive online video/article content into a personal knowledge vault. Supports YouTube, Bilibili, 小红书, X, TikTok, and more. |
-| [dev-setup](skills/dev-setup/) | Bootstrap a new Windows dev machine with a standard directory layout, Git identity auto-switching (personal vs work), and personal repo cloning. |
+| Id | Skill | Description |
+|----|-------|-------------|
+| 001 | [adobe-leave-organizations](skills/adobe-leave-organizations/) | Automate leaving Adobe Account enterprise/team organizations while keeping named organizations, with guarded browser automation for login, profile chooser, reauthentication, and confirmation pages. |
+| 002 | [clipvault](skills/clipvault/) | Transcribe, summarize, and archive online video/article content into a personal knowledge vault. Supports YouTube, Bilibili, 小红书, X, TikTok, and more. |
+| 003 | [dev-setup](skills/dev-setup/) | Bootstrap a new Windows development machine with a standardized directory layout, personal/work Git identity config, and personal repo cloning. |
+| 004 | [directory-lock-detector](skills/directory-lock-detector/) | Detect which process is locking or occupying a Windows directory using WMI and PowerShell module scanning. |
+| 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | Audit C#/.NET and Visual Studio repositories for conservative unused-code cleanup candidates, stale projects, unreachable solution graph nodes, and generated artifacts. |
+| 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | Diagnose and repair Windows UWP/AppContainer app failures caused by local proxy loopback restrictions. |
+| 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | Publish a local Codex skill into a Git repository while keeping Codex skill discovery working through junctions and validation checks. |
+| 008 | [windows-app-manager](skills/windows-app-manager/) | Controlled Windows app management, currently powered by winget. Supports safe search, show, download, install, upgrade, uninstall, installed-app resolution, and upgrade listing with structured JSON output. |
+| 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | Design a clean, safe, role-aware Windows workstation structure for partitions, folders, work/personal separation, media, backups, sync, and multi-computer setups. |
 
-> More skills will be added over time. Stay tuned!
+Each folder is self-contained. Some skills include scripts, templates, references, or agent manifests alongside `SKILL.md`.
 
 ---
 
@@ -77,13 +83,19 @@ Junctions are handled by the operating system at the filesystem layer; any progr
 ```text
 jiapeng-skills/
 ├─ README.md
+├─ README.zh-CN.md
+├─ scripts/
+│  ├─ Link-Skills.cmd
+│  └─ Link-Skills.ps1
 ├─ skills/
+│  ├─ adobe-leave-organizations/
 │  ├─ clipvault/
-│  │  └─ SKILL.md
+│  ├─ dev-setup/
+│  ├─ directory-lock-detector/
+│  ├─ dotnet-unused-code-audit/
+│  ├─ fix-uwp-proxy-loopback/
+│  ├─ publish-skill-to-repo/
 │  ├─ windows-app-manager/
-│  │  ├─ scripts/
-│  │  └─ SKILL.md
-│  └─ ...
-├─ docs/
-└─ scripts/
+│  └─ windows-workstation-architect/
+└─ ...
 ```
