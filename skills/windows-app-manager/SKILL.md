@@ -91,31 +91,40 @@ Do **not** use this skill for:
 
 ## Usage
 
+Run the wrapper from the skill root via `scripts\windows-app-manager.ps1`. Do not assume `windows-app-manager.ps1` exists directly in the skill root.
+
 ```powershell
 # Search for packages
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action search -Query "Visual Studio Code"
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action search -Query "Visual Studio Code"
 
 # Show package details
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action show -PackageId "Microsoft.VisualStudioCode" -Exact
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action show -PackageId "Microsoft.VisualStudioCode" -Exact
 
 # Download installer only
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action download -PackageId "Google.Chrome" -Source winget -DownloadPath "$env:USERPROFILE\Downloads" -Exact
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action download -PackageId "Google.Chrome" -Source winget -DownloadPath "$env:USERPROFILE\Downloads" -Exact
 
 # Install a package with exact matching
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action install -PackageId "Microsoft.VisualStudioCode" -Source winget -Exact
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action install -PackageId "Microsoft.VisualStudioCode" -Source winget -Exact
 
 # Upgrade a package
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action upgrade -PackageId "Git.Git" -Source winget -Exact
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action upgrade -PackageId "Git.Git" -Source winget -Exact
 
 # Uninstall (always exact match)
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action uninstall -PackageId "7zip.7zip" -Source winget -Exact
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action uninstall -PackageId "7zip.7zip" -Source winget -Exact
 
 # Resolve a locally installed app when source search finds nothing
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action resolve-installed -Query "微信"
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action resolve-installed -Query "微信"
 
 # List upgradeable packages
-powershell -ExecutionPolicy Bypass -File .\windows-app-manager.ps1 -Action list-upgrades
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-app-manager.ps1 -Action list-upgrades
 ```
+
+## Operational Pitfalls
+
+- If a public `search` returns no package for a display name, continue with `resolve-installed` before uninstalling. Many preinstalled, MSIX, OEM, or localized applications are only visible through the local installed list.
+- If `resolve-installed` unexpectedly reports `winget is not installed or not in PATH`, first confirm whether the Windows App Installer alias is actually available with a read-only check such as `Get-Command winget`. On some Windows sessions, the alias may live under `WindowsApps` and a transient wrapper check can fail even though `winget` works.
+- When `resolve-installed` is blocked by that alias issue but `winget` is available, a read-only diagnostic fallback is allowed: run `winget list --name "Microsoft Teams" --accept-source-agreements` using the requested display name instead of the example. If it returns exactly one installed row, copy that exact `ID` into the normal `uninstall` action. If it returns zero or multiple rows, report the candidates or ask for disambiguation. Never uninstall every match.
+- Do not retry a failed `uninstall` automatically. The fallback above is only for resolving an exact local package ID before the first uninstall attempt.
 
 ## Output Format
 
