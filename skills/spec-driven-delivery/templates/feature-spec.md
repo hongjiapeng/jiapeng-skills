@@ -42,6 +42,7 @@ Out of scope:
 - Existing architecture to preserve: [pattern]
 - Dependencies: [none/new dependency request]
 - Platform/version constraints: [framework, OS, runtime]
+- Engineering guidelines: If the target repository is a .NET project, apply `templates/dotnet-engineering-guidelines.md`. Do not repeat those guidelines here; list only project-specific deviations or decisions.
 
 ## Edge Cases
 

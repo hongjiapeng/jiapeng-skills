@@ -14,6 +14,12 @@
 
 [Short technical approach. Explain why this fits the existing architecture.]
 
+## Engineering Guidelines
+
+- If the target repository is a .NET project, apply `templates/dotnet-engineering-guidelines.md`.
+- Do not repeat the common .NET rules here.
+- List only project-specific deviations, tradeoffs, or explicit architecture decisions.
+
 ## Requirement Traceability
 
 | Requirement | Implementation Task | Verification |

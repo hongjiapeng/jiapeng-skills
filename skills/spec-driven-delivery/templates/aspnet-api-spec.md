@@ -16,6 +16,7 @@
 
 - May modify: [repo]
 - Read-only references: [repos]
+- Engineering guidelines: Apply `templates/dotnet-engineering-guidelines.md`; do not repeat common .NET rules here.
 
 ## API Contract
 

@@ -25,6 +25,7 @@
 - Models: [model files]
 - Services: [service files]
 - Existing MVVM framework or pattern: [CommunityToolkit.Mvvm/custom/none]
+- Engineering guidelines: Apply `templates/dotnet-engineering-guidelines.md`; do not repeat common .NET rules here.
 
 ## Functional Requirements
 

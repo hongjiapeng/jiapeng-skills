@@ -50,11 +50,13 @@ Follow these steps in order:
 4. Generate the feature spec.
    - Use `templates/feature-spec.md` by default.
    - Use `templates/wpf-feature-spec.md`, `templates/winui-feature-spec.md`, `templates/aspnet-api-spec.md`, or `templates/windows-service-spec.md` when the target stack matches.
+   - For .NET projects, always check whether `templates/dotnet-engineering-guidelines.md` applies and reference it instead of repeating common .NET engineering rules.
 
 5. Generate the implementation plan.
    - Use `templates/implementation-plan.md`.
    - Every task must map back to a requirement.
    - Prefer a small vertical slice over a broad rewrite.
+   - For .NET projects, include an engineering guidelines reference to `templates/dotnet-engineering-guidelines.md`.
 
 6. Generate acceptance criteria.
    - Every requirement must have at least one acceptance criterion.
@@ -102,6 +104,9 @@ If the user asks for files, save the artifacts as Markdown. If the user asks for
 - Make build and test commands concrete when discoverable.
 - If a check cannot be run, say why and provide a manual fallback.
 - Preserve existing project architecture unless the spec explicitly approves a change.
+- For .NET projects, prefer the target repository's existing conventions.
+- Do not blindly introduce architecture patterns.
+- Only propose new DI, logging, layering, or framework choices when they solve a clear problem.
 - For UI work, require loading, empty, error, accessibility, and responsive behavior when applicable.
 - For Windows desktop work, account for UI thread dispatching, app lifecycle, packaging constraints, and OS integration only when relevant.
 

@@ -33,6 +33,7 @@ This repo is used to:
 | 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | Audit C#/.NET and Visual Studio repositories for conservative unused-code cleanup candidates, stale projects, unreachable solution graph nodes, and generated artifacts. |
 | 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | Diagnose and repair Windows UWP/AppContainer app failures caused by local proxy loopback restrictions. |
 | 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | Publish a local Codex skill into a Git repository while keeping Codex skill discovery working through junctions and validation checks. |
+| 010 | [spec-driven-delivery](skills/spec-driven-delivery/) | Create lightweight implementation-ready specs, plans, acceptance criteria, verification checklists, and final coding-agent prompts from vague product or engineering requests. |
 | 008 | [windows-app-manager](skills/windows-app-manager/) | Controlled Windows app management, currently powered by winget. Supports safe search, show, download, install, upgrade, uninstall, installed-app resolution, and upgrade listing with structured JSON output. |
 | 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | Design a clean, safe, role-aware Windows workstation structure for partitions, folders, work/personal separation, media, backups, sync, and multi-computer setups. |
 
@@ -95,6 +96,7 @@ jiapeng-skills/
 │  ├─ dotnet-unused-code-audit/
 │  ├─ fix-uwp-proxy-loopback/
 │  ├─ publish-skill-to-repo/
+│  ├─ spec-driven-delivery/
 │  ├─ windows-app-manager/
 │  └─ windows-workstation-architect/
 └─ ...

@@ -33,6 +33,7 @@
 | 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | 审计 C#/.NET 与 Visual Studio 仓库中的保守清理候选项，包括未使用代码、陈旧项目、不可达解决方案节点和生成产物。 |
 | 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | 诊断并修复 Windows UWP/AppContainer 应用因本地代理 loopback 限制导致的打开、登录、下载或联网失败。 |
 | 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | 将本地 Codex skill 发布到 Git 仓库，同时通过目录联接和校验流程保持 Codex skill discovery 可用。 |
+| 010 | [spec-driven-delivery](skills/spec-driven-delivery/) | 将模糊的产品或工程需求整理为轻量、可实施的规格说明、实现计划、验收标准、验证清单和最终 coding-agent prompt。 |
 | 008 | [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget；支持搜索、详情查看、下载安装包、安装、升级、卸载、本机应用解析和升级列表，并返回结构化 JSON 输出。 |
 | 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | 设计干净、安全、按角色适配的 Windows 工作站结构，覆盖分区、文件夹、工作/个人隔离、媒体、备份、同步和多电脑场景。 |
 
@@ -95,6 +96,7 @@ jiapeng-skills/
 │  ├─ dotnet-unused-code-audit/
 │  ├─ fix-uwp-proxy-loopback/
 │  ├─ publish-skill-to-repo/
+│  ├─ spec-driven-delivery/
 │  ├─ windows-app-manager/
 │  └─ windows-workstation-architect/
 └─ ...

@@ -32,6 +32,7 @@ You are implementing a scoped change from an approved spec. Do not start by rewr
 - Non-goals: [non-goals]
 - Assumptions: [assumptions]
 - Risks: [risks]
+- Engineering guidelines: [For .NET projects, apply `templates/dotnet-engineering-guidelines.md`; list only project-specific deviations.]
 
 ## Implementation Plan
 

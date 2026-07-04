@@ -27,6 +27,7 @@
 - Services: [service files]
 - Windows App SDK version constraints: [version]
 - Packaged/unpackaged mode: [mode]
+- Engineering guidelines: Apply `templates/dotnet-engineering-guidelines.md`; do not repeat common .NET rules here.
 
 ## Functional Requirements
 
