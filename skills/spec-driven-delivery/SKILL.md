@@ -110,6 +110,17 @@ If the user asks for files, save the artifacts as Markdown. If the user asks for
 - For UI work, require loading, empty, error, accessibility, and responsive behavior when applicable.
 - For Windows desktop work, account for UI thread dispatching, app lifecycle, packaging constraints, and OS integration only when relevant.
 
+## Field-Tested Delivery Pitfalls
+
+When creating specs, plans, checklists, or coding-agent prompts, explicitly guard against these failure modes when relevant:
+
+- Do not put machine-specific absolute paths, usernames, local attachment paths, or private skill-repo paths into repository docs or durable prompts. Use "this repository root" and repository-relative paths unless a local path is only for the current agent's private execution.
+- Distinguish real screenshots from generated product previews or mockups. Use names and README labels such as `product-preview` for renders and `screenshot` only for actual captured app output.
+- Do not run `dotnet build` and `dotnet test` in parallel on the same solution unless the repository explicitly supports it; they can lock shared outputs and create false failures.
+- Before rebuilding a running .NET executable, check for and stop or report processes that lock `bin` outputs. If the user is actively using the process, state that the build is blocked by the running process rather than pretending the code is broken.
+- When changing a web app's SDK shape, launch profile, content root, or static asset handling, include explicit verification that root URLs, static files, and copied assets still work in the built output.
+- For browser UI inspired by design mockups, separate the product UI from real browser chrome. Do not preserve fake browser/window controls from a mockup unless they are a deliberate product feature.
+
 ## Quality Gates
 
 Before handing off to a coding agent, confirm:
@@ -124,6 +135,8 @@ Before handing off to a coding agent, confirm:
 - Risks are specific enough to guide review.
 - Verification includes automated and manual checks where appropriate.
 - The prompt tells the coding agent what not to modify.
+- Durable docs and prompts contain no private local absolute paths.
+- Screenshots/previews are named according to what they actually are.
 
 ## Final Response Format
 

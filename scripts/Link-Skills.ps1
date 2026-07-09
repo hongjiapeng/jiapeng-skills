@@ -30,6 +30,19 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Get-NormalizedPath {
+    param([Parameter(Mandatory = $true)][string] $Path)
+    return [System.IO.Path]::GetFullPath($Path).TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    )
+}
+
+function Get-LinkTargetText {
+    param([Parameter(Mandatory = $true)] $Item)
+    return (($Item.Target | ForEach-Object { $_ }) -join ';')
+}
+
 # Resolve the skills source directory relative to this script
 $repoRoot   = Split-Path $PSScriptRoot -Parent
 $skillsRoot = Join-Path $repoRoot 'skills'
@@ -57,13 +70,19 @@ foreach ($skill in $skillDirs) {
 
     if (Test-Path $linkPath) {
         $existing = Get-Item $linkPath -Force
-        if ($existing.LinkType -in 'Junction','SymbolicLink' -and $existing.Target -eq $skill.FullName) {
-            Write-Host "  [skip]    $($skill.Name)  (already linked)"
-            continue
-        } else {
+        if ($existing.LinkType -notin 'Junction','SymbolicLink') {
             Write-Warning "  [conflict] '$linkPath' already exists and is not a link to this skill. Skipping."
             continue
         }
+
+        $existingTarget = Get-LinkTargetText $existing
+        if ((Get-NormalizedPath $existingTarget) -eq (Get-NormalizedPath $skill.FullName)) {
+            Write-Host "  [skip]    $($skill.Name)  (already linked)"
+            continue
+        }
+
+        Write-Warning "  [relink]  $($skill.Name)  (was linked to '$existingTarget')"
+        Remove-Item -LiteralPath $linkPath -Force
     }
 
     New-Item -ItemType Junction -Path $linkPath -Target $skill.FullName | Out-Null

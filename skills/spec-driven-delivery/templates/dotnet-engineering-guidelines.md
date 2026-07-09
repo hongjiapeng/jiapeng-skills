@@ -13,6 +13,14 @@ Follow the existing architecture of the target repository. Do not force Clean Ar
 - Keep UI, application logic, infrastructure, and persistence separated only to the degree the repository already supports or the requirement needs.
 - Avoid broad folder reshuffles during feature work.
 
+## ASP.NET Core Host Shape
+
+- Treat `Microsoft.NET.Sdk.Web` and `Microsoft.NET.Sdk` plus `Microsoft.AspNetCore.App` as different host shapes with different defaults.
+- If converting an ASP.NET Core host to a console-style executable using `Microsoft.NET.Sdk`, explicitly configure `OutputType`, static asset copy rules, content root, web root, and launch settings.
+- Verify `GET /` and static assets from the built output, not only from the source tree.
+- If the app should be HTTP-only for LAN or local development, add an explicit HTTP-only `launchSettings.json` profile so tooling does not regenerate HTTPS defaults or prompt for development certificate trust.
+- Do not simulate browser chrome or OS window controls in a web app simply because a design mockup includes them; keep or remove them based on product intent and the real runtime context.
+
 ## Layering Rules
 
 - Preserve existing dependencies between projects and layers.
@@ -113,6 +121,7 @@ Follow the existing architecture of the target repository. Do not force Clean Ar
 - Add integration tests for API contracts, persistence, filesystem behavior, background services, and dependency registration when relevant.
 - Prefer testing through existing public seams rather than exposing internals only for tests.
 - Include manual verification for UI, installer, service, or OS integration behavior.
+- Avoid running build and test commands concurrently against the same output folders unless the repository is designed for it; .NET builds and test runs can lock assemblies and produce false failures.
 
 ## Build and Packaging
 
@@ -120,6 +129,7 @@ Follow the existing architecture of the target repository. Do not force Clean Ar
 - Do not change SDK versions, RuntimeIdentifiers, trimming, single-file, AOT, signing, installer, NuGet, MSIX, winget, or CI behavior unless in scope.
 - For packaging changes, include install, upgrade, uninstall, rollback, and signing considerations.
 - Keep generated artifacts out of source control unless the repository already tracks them.
+- Before rebuilding, check whether the app executable is running and locking files under `bin`. Stop only processes that are clearly in scope, or report the lock and exact PID.
 
 ## NuGet Dependencies
 
