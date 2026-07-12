@@ -104,3 +104,9 @@ ENV/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Codex temporary working files
+.codex-tmp/
+
+# Test results
+test-results/
