@@ -1,0 +1,4 @@
+interface:
+  display_name: "WinGet Package Publisher"
+  short_description: "Publish and update Windows packages in WinGet safely"
+  default_prompt: "Use $winget-package-publisher to publish this Windows release to WinGet and handle validation feedback."
