@@ -20,6 +20,9 @@ try {
     Set-Content -LiteralPath (Join-Path $cache 'delete.tmp') -Value 'delete me' -Encoding utf8
     Set-Content -LiteralPath (Join-Path $cache 'keep.tmp') -Value 'keep me' -Encoding utf8
     Set-Content -LiteralPath (Join-Path $cache 'ignore.log') -Value 'ignore me' -Encoding utf8
+    $wildcardCache = Join-Path $testRoot 'DemoApp-Beta\Cache'
+    [void](New-Item -ItemType Directory -Path $wildcardCache -Force)
+    Set-Content -LiteralPath (Join-Path $wildcardCache 'wildcard.tmp') -Value 'wildcard me' -Encoding utf8
     [Environment]::SetEnvironmentVariable('CJW_TEST_ROOT', $testRoot, 'Process')
 
     $rulesPath = Join-Path $testRoot 'Winapp2.ini'
@@ -42,6 +45,11 @@ FileKey1=%CJW_TEST_ROOT%\DemoApp\Cache|*.log
 Default=True
 DetectFile=%CJW_TEST_ROOT%\DemoApp
 FileKey1=%SystemDrive%\|*.tmp
+
+[Wildcard Cache *]
+Default=True
+DetectFile=%CJW_TEST_ROOT%\DemoApp-*
+FileKey1=%CJW_TEST_ROOT%\DemoApp-*\Cache|*.tmp
 '@ | Set-Content -LiteralPath $rulesPath -Encoding utf8
 
     $planPath = Join-Path $testRoot 'plan.json'
@@ -50,7 +58,7 @@ FileKey1=%SystemDrive%\|*.tmp
         throw "ValidateRules failed: $validationText"
     }
     $validation = $validationText | ConvertFrom-Json
-    if (-not $validation.success -or $validation.entry_count -ne 3) {
+    if (-not $validation.success -or $validation.entry_count -ne 4) {
         throw 'ValidateRules returned an unexpected result.'
     }
 
@@ -126,6 +134,16 @@ FileKey1=%SystemDrive%\|*.tmp
         throw 'Unsafe root rule was not blocked as expected.'
     }
 
+    $wildcardPlanPath = Join-Path $testRoot 'wildcard-plan.json'
+    $wildcardScanText = & $enginePath -NoProfile -File $scriptPath -Action Scan -RulesPath $rulesPath -Entry 'Wildcard Cache' -PlanPath $wildcardPlanPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Wildcard scan failed: $wildcardScanText"
+    }
+    $wildcardScan = $wildcardScanText | ConvertFrom-Json
+    if ($wildcardScan.file_count -ne 1 -or $wildcardScan.skipped_rules.Count -ne 0) {
+        throw "Wildcard directory rule was not resolved as expected: $wildcardScanText"
+    }
+
     $winapp3Path = Join-Path $testRoot 'Winapp3.ini'
     @'
 ; Winapp3.ini advanced rules
@@ -149,6 +167,7 @@ FileKey1=%CJW_TEST_ROOT%\DemoApp\Cache|*
         incorrect_confirmation_rejected = $true
         risky_confirmation_enforced = $true
         unsafe_root_blocked = $true
+        wildcard_path_supported = $true
         winapp3_rejected = $true
     } | ConvertTo-Json
 }

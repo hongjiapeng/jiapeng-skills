@@ -17,14 +17,28 @@ Use the bundled PowerShell script as the only deletion engine. Do not download o
 - Never add `-AllowRisky` unless the user confirms the displayed `Default=False` or `Warning` risks.
 - Never execute registry rules. The script reports and ignores them.
 - Reject Winapp3 rules.
-- Do not force-close applications, elevate privileges, clear the Recycle Bin, schedule cleanup, or download updated rules.
+- Obtain explicit user approval before `InstallRules` or `InstallRules -Force`.
+- Do not force-close applications, elevate privileges, clear the Recycle Bin, or schedule cleanup.
 
 Read [references/safety-policy.md](references/safety-policy.md) before executing `Clean` or changing safety behavior. Read [references/winapp2-compatibility.md](references/winapp2-compatibility.md) when selecting, updating, or debugging a rules file.
 
 ## Workflow
 
-1. Locate a user-provided `Winapp2.ini`. If none is available, ask the user to choose a local rules file; do not download one implicitly.
-2. Validate the rules:
+1. Resolve the rules source:
+   - Use a user-provided `Winapp2.ini` when available.
+   - Otherwise use an explicitly updated copy at `%LOCALAPPDATA%\clean-windows-junk\Winapp2.ini`.
+   - Otherwise use the bundled, validated snapshot at `assets\rules\Winapp2.ini`.
+   - Download rules only when the user explicitly asks to install or update them:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-WindowsJunkCleaner.ps1 `
+     -Action InstallRules `
+     -RulesSource FluentCleaner
+   ```
+
+   Use `-RulesSource Winapp2` only when the user explicitly chooses the upstream CCleaner flavor. Add `-Force` only after the user approves replacing an existing local update. Online updates never modify the bundled snapshot.
+
+2. Validate the rules. Omit `-RulesPath` to use the local update or bundled snapshot:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-WindowsJunkCleaner.ps1 `
@@ -47,7 +61,7 @@ Read [references/safety-policy.md](references/safety-policy.md) before executing
    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-WindowsJunkCleaner.ps1 `
      -Action Scan `
      -RulesPath "C:\path\to\Winapp2.ini" `
-     -Entry "Google Chrome Caches" `
+     -Entry "Google Chrome Caches;Microsoft Edge Caches" `
      -PlanPath "$env:TEMP\clean-windows-junk-plan.json"
    ```
 

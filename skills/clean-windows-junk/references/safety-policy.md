@@ -58,5 +58,5 @@ Before deletion, the script revalidates the plan hash, rules-file hash, allowed 
 - Do not run FluentCleaner `/AUTO`.
 - Do not close processes or retry locked files automatically.
 - Do not elevate privileges automatically.
-- Do not auto-update cleaning rules.
+- Do not install or update cleaning rules without explicit user approval.
 - Do not turn ignored or blocked items into ad hoc `Remove-Item` commands.

@@ -1,0 +1,13 @@
+{
+  "source": "builtbybel/FluentCleaner",
+  "source_file": "Winapp2.ini",
+  "source_url": "https://github.com/builtbybel/FluentCleaner/blob/2793e740dab5053f6a44fbd23fe595c8dc54b892/Winapp2.ini",
+  "raw_url": "https://raw.githubusercontent.com/builtbybel/FluentCleaner/2793e740dab5053f6a44fbd23fe595c8dc54b892/Winapp2.ini",
+  "commit": "2793e740dab5053f6a44fbd23fe595c8dc54b892",
+  "commit_date": "2026-07-25T23:34:25+02:00",
+  "rules_version": "260714",
+  "entry_count": 3721,
+  "sha256": "7e5380a5b9f5c027b17d3a0646f5b944c04bc32f1e6734396c4da86862540a6f",
+  "license": "CC-BY-SA-4.0",
+  "bundled_on": "2026-07-26"
+}

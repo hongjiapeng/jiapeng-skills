@@ -1,9 +1,12 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('List', 'ValidateRules', 'Scan', 'Clean')]
+    [ValidateSet('InstallRules', 'List', 'ValidateRules', 'Scan', 'Clean')]
     [string]$Action = 'List',
 
     [string]$RulesPath,
+
+    [ValidateSet('FluentCleaner', 'Winapp2')]
+    [string]$RulesSource = 'FluentCleaner',
 
     [string[]]$Entry,
 
@@ -13,7 +16,9 @@ param(
 
     [string]$ConfirmPlanId,
 
-    [switch]$AllowRisky
+    [switch]$AllowRisky,
+
+    [switch]$Force
 )
 
 Set-StrictMode -Version Latest
@@ -197,10 +202,15 @@ function Resolve-SafeDirectories {
         throw "UNC paths are not allowed: $expanded"
     }
 
-    $fullPattern = [System.IO.Path]::GetFullPath($expanded)
-    $root = [System.IO.Path]::GetPathRoot($fullPattern)
-    $relative = $fullPattern.Substring($root.Length)
+    $root = [System.IO.Path]::GetPathRoot($expanded)
+    if ([string]::IsNullOrWhiteSpace($root)) {
+        throw "Expanded path has no filesystem root: $expanded"
+    }
+    $relative = $expanded.Substring($root.Length)
     $segments = @($relative -split '[\\/]' | Where-Object { $_ -ne '' })
+    if (@($segments | Where-Object { $_ -eq '.' -or $_ -eq '..' }).Count -gt 0) {
+        throw "Relative path traversal is not allowed: $expanded"
+    }
 
     $firstWildcard = -1
     for ($index = 0; $index -lt $segments.Count; $index++) {
@@ -211,6 +221,7 @@ function Resolve-SafeDirectories {
     }
 
     if ($firstWildcard -lt 0) {
+        $fullPattern = [System.IO.Path]::GetFullPath($expanded)
         [void](Get-SafeRootForDirectory -Directory $fullPattern)
         if (Test-Path -LiteralPath $fullPattern -PathType Container) {
             return ,(Get-NormalizedFullPath -Path $fullPattern)
@@ -260,6 +271,119 @@ function Resolve-SafeDirectories {
         [void]$safe.Add((Get-NormalizedFullPath -Path $candidate))
     }
     return @($safe | Sort-Object -Unique)
+}
+
+function Get-DefaultRulesPath {
+    $localAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    return Join-Path $localAppData 'clean-windows-junk\Winapp2.ini'
+}
+
+function Get-BundledRulesPath {
+    return Get-NormalizedFullPath -Path (Join-Path $PSScriptRoot '..\assets\rules\Winapp2.ini')
+}
+
+function Resolve-RulesPath {
+    param([string]$RequestedPath)
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedPath)) {
+        return $RequestedPath
+    }
+    $defaultPath = Get-DefaultRulesPath
+    if (Test-Path -LiteralPath $defaultPath -PathType Leaf) {
+        return $defaultPath
+    }
+    $bundledPath = Get-BundledRulesPath
+    if (Test-Path -LiteralPath $bundledPath -PathType Leaf) {
+        return $bundledPath
+    }
+    throw "No user-provided, locally updated, or bundled Winapp2.ini was found. After explicit user approval, run -Action InstallRules to install official rules at: $defaultPath"
+}
+
+function Invoke-InstallRules {
+    param(
+        [Parameter(Mandatory = $true)][string]$SourceName,
+        [string]$DestinationPath,
+        [bool]$ReplaceExisting
+    )
+
+    $sources = @{
+        'FluentCleaner' = 'https://raw.githubusercontent.com/builtbybel/FluentCleaner/main/Winapp2.ini'
+        'Winapp2' = 'https://raw.githubusercontent.com/MoscaDotTo/Winapp2/master/Winapp2.ini'
+    }
+    if (-not $sources.ContainsKey($SourceName)) {
+        throw "Unsupported rules source: $SourceName"
+    }
+
+    $destination = if ([string]::IsNullOrWhiteSpace($DestinationPath)) {
+        Get-DefaultRulesPath
+    }
+    else {
+        Get-NormalizedFullPath -Path $DestinationPath
+    }
+    if (Test-Path -LiteralPath $destination -PathType Leaf) {
+        if (-not $ReplaceExisting) {
+            throw "Rules already exist at $destination. Re-run with -Force only after reviewing and approving an update."
+        }
+    }
+
+    $parent = Split-Path -Parent $destination
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
+        [void](New-Item -ItemType Directory -Path $parent -Force)
+    }
+    $temporaryPath = Join-Path $parent ('.Winapp2.' + [guid]::NewGuid().ToString('N') + '.download')
+
+    try {
+        if ($PSVersionTable.PSVersion.Major -lt 6) {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        }
+        Invoke-WebRequest -Uri $sources[$SourceName] -OutFile $temporaryPath -UseBasicParsing
+
+        $header = @(Get-Content -LiteralPath $temporaryPath -TotalCount 15)
+        if (-not ($header -match 'CC-BY-SA-4\.0') -or -not ($header -match 'MoscaDotTo/Winapp2')) {
+            throw 'Downloaded file is missing the expected Winapp2 attribution and license header.'
+        }
+
+        $rules = Read-WinappRules -Path $temporaryPath
+        if ($rules.IsWinapp3) {
+            throw 'Downloaded rules were identified as Winapp3 and rejected.'
+        }
+        if ($rules.Entries.Count -lt 1000) {
+            throw "Downloaded rules contained an unexpectedly small number of entries: $($rules.Entries.Count)"
+        }
+
+        Move-Item -LiteralPath $temporaryPath -Destination $destination -Force
+        return [ordered]@{
+            success = $true
+            action = 'InstallRules'
+            source = $SourceName
+            source_url = $sources[$SourceName]
+            rules_path = $destination
+            rules_version = $rules.Version
+            rules_sha256 = $rules.Sha256
+            entry_count = $rules.Entries.Count
+            is_winapp3 = $false
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryPath) {
+            Remove-Item -LiteralPath $temporaryPath -Force
+        }
+    }
+}
+
+function Expand-EntryNames {
+    param([Parameter(Mandatory = $true)][string[]]$Names)
+
+    return @(
+        foreach ($name in $Names) {
+            foreach ($part in ($name -split ';')) {
+                $trimmed = $part.Trim()
+                if (-not [string]::IsNullOrWhiteSpace($trimmed)) {
+                    $trimmed
+                }
+            }
+        }
+    )
 }
 
 function New-WinappEntry {
@@ -806,6 +930,7 @@ function Invoke-Scan {
     $planId = 'sha256:' + (Get-StringSha256 -Value $payloadJson)
     $plan = [ordered]@{
         plan_id = $planId
+        payload_json = $payloadJson
         payload = $payload
     }
 
@@ -846,26 +971,28 @@ function Invoke-Clean {
     }
 
     $plan = Get-Content -LiteralPath $InputPlanPath -Raw | ConvertFrom-Json
-    if ($null -eq $plan.plan_id -or $null -eq $plan.payload) {
+    if ($null -eq $plan.plan_id -or [string]::IsNullOrWhiteSpace([string]$plan.payload_json)) {
         throw 'Invalid cleanup plan structure.'
     }
-    $calculatedPlanId = 'sha256:' + (Get-StringSha256 -Value (ConvertTo-StableJson -InputObject $plan.payload))
+    $payloadJson = [string]$plan.payload_json
+    $calculatedPlanId = 'sha256:' + (Get-StringSha256 -Value $payloadJson)
     if (-not $calculatedPlanId.Equals([string]$plan.plan_id, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw 'Cleanup plan integrity check failed.'
     }
     if (-not $calculatedPlanId.Equals($ConfirmedPlanId, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw 'Confirmed plan ID does not match the saved cleanup plan.'
     }
-    if ([bool]$plan.payload.requires_allow_risky -and -not $RiskAccepted) {
+    $payload = $payloadJson | ConvertFrom-Json
+    if ([bool]$payload.requires_allow_risky -and -not $RiskAccepted) {
         throw 'This plan contains Default=False or Warning entries. Explicitly confirm the displayed risks, then rerun with -AllowRisky.'
     }
 
-    $rulesPathFromPlan = [string]$plan.payload.rules.path
+    $rulesPathFromPlan = [string]$payload.rules.path
     if (-not (Test-Path -LiteralPath $rulesPathFromPlan -PathType Leaf)) {
         throw "The rules file recorded in the plan is no longer available: $rulesPathFromPlan"
     }
     $currentRulesHash = (Get-FileHash -LiteralPath $rulesPathFromPlan -Algorithm SHA256).Hash.ToLowerInvariant()
-    if (-not $currentRulesHash.Equals([string]$plan.payload.rules.sha256, [System.StringComparison]::OrdinalIgnoreCase)) {
+    if (-not $currentRulesHash.Equals([string]$payload.rules.sha256, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw 'The rules file changed after the scan. Create a new cleanup plan.'
     }
 
@@ -875,7 +1002,7 @@ function Invoke-Clean {
     $missing = New-Object System.Collections.ArrayList
     $bytes = [int64]0
 
-    foreach ($planned in @($plan.payload.files)) {
+    foreach ($planned in @($payload.files)) {
         $path = [string]$planned.path
         try {
             $full = Get-NormalizedFullPath -Path $path
@@ -931,24 +1058,21 @@ function Invoke-Clean {
 try {
     $result = $null
     switch ($Action) {
+        'InstallRules' {
+            $result = Invoke-InstallRules -SourceName $RulesSource -DestinationPath $RulesPath -ReplaceExisting $Force.IsPresent
+        }
         'ValidateRules' {
-            if ([string]::IsNullOrWhiteSpace($RulesPath)) {
-                throw 'ValidateRules requires -RulesPath.'
-            }
+            $RulesPath = Resolve-RulesPath -RequestedPath $RulesPath
             $rules = Read-WinappRules -Path $RulesPath
             $result = Invoke-ValidateRules -Rules $rules
         }
         'List' {
-            if ([string]::IsNullOrWhiteSpace($RulesPath)) {
-                throw 'List requires -RulesPath.'
-            }
+            $RulesPath = Resolve-RulesPath -RequestedPath $RulesPath
             $rules = Read-WinappRules -Path $RulesPath
             $result = Invoke-ListEntries -Rules $rules -Filter $Query
         }
         'Scan' {
-            if ([string]::IsNullOrWhiteSpace($RulesPath)) {
-                throw 'Scan requires -RulesPath.'
-            }
+            $RulesPath = Resolve-RulesPath -RequestedPath $RulesPath
             if ([string]::IsNullOrWhiteSpace($PlanPath)) {
                 throw 'Scan requires -PlanPath.'
             }
@@ -956,7 +1080,8 @@ try {
                 throw 'Scan requires at least one exact -Entry name.'
             }
             $rules = Read-WinappRules -Path $RulesPath
-            $result = Invoke-Scan -Rules $rules -Names $Entry -OutputPlanPath $PlanPath
+            $entryNames = Expand-EntryNames -Names $Entry
+            $result = Invoke-Scan -Rules $rules -Names $entryNames -OutputPlanPath $PlanPath
         }
         'Clean' {
             if ([string]::IsNullOrWhiteSpace($PlanPath)) {
