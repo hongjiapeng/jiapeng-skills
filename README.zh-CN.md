@@ -28,15 +28,18 @@
 |----|------|------|
 | 001 | [adobe-leave-organizations](skills/adobe-leave-organizations/) | 自动从 Adobe Account 企业/团队组织中退出，同时保留指定组织；包含登录、资料选择、重复认证和最终确认页面的安全浏览器自动化流程。 |
 | 002 | [clipvault](skills/clipvault/) | 转录、摘要、归档互联网视频/文章内容到个人知识库。支持 YouTube、Bilibili、小红书、X、TikTok 等平台。 |
-| 003 | [dev-setup](skills/dev-setup/) | 初始化新 Windows 开发机：标准目录结构、个人/工作 Git 身份配置，以及个人仓库克隆。 |
+| 003 | [dev-setup](skills/dev-setup/) | 初始化或重组 Windows 开发工作站：支持可配置目录结构、按目录切换 Git 身份、执行前预览，以及可选的仓库克隆。 |
 | 004 | [directory-lock-detector](skills/directory-lock-detector/) | 通过 WMI 和 PowerShell 模块扫描，检测哪个进程正在锁定或占用某个 Windows 目录。 |
 | 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | 审计 C#/.NET 与 Visual Studio 仓库中的保守清理候选项，包括未使用代码、陈旧项目、不可达解决方案节点和生成产物。 |
 | 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | 诊断并修复 Windows UWP/AppContainer 应用因本地代理 loopback 限制导致的打开、登录、下载或联网失败。 |
 | 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | 将本地 Codex skill 发布到 Git 仓库，同时通过目录联接和校验流程保持 Codex skill discovery 可用。 |
-| 010 | [spec-driven-delivery](skills/spec-driven-delivery/) | 将模糊的产品或工程需求整理为轻量、可实施的规格说明、实现计划、验收标准、验证清单和最终 coding-agent prompt。 |
-| 011 | [winget-package-publisher](skills/winget-package-publisher/) | 将公开发布的 Windows 应用安全提交或更新到 WinGet，涵盖清单生成与验证、fork/PR、CLA 人工确认和流水线排障。 |
 | 008 | [windows-app-manager](skills/windows-app-manager/) | 受控 Windows 应用管理技能，当前基于 winget；支持搜索、详情查看、下载安装包、安装、升级、卸载、本机应用解析和升级列表，并返回结构化 JSON 输出。 |
 | 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | 设计干净、安全、按角色适配的 Windows 工作站结构，覆盖分区、文件夹、工作/个人隔离、媒体、备份、同步和多电脑场景。 |
+| 010 | [spec-driven-delivery](skills/spec-driven-delivery/) | 将模糊的产品或工程需求整理为轻量、可实施的规格说明、实现计划、验收标准、验证清单和最终 coding-agent prompt。 |
+| 011 | [winget-package-publisher](skills/winget-package-publisher/) | 将公开发布的 Windows 应用安全提交或更新到 WinGet，涵盖清单生成与验证、fork/PR、CLA 人工确认和流水线排障。 |
+| 012 | [browser-bookmark-manager](skills/browser-bookmark-manager/) | 在 Windows、macOS 和 Linux 上安全扫描、审计、去重、备份、恢复和优化 Edge/Chrome 书签，并通过字段 diff 验证 Edge 收藏栏“仅显示图标”。 |
+| 013 | [clean-windows-junk](skills/clean-windows-junk/) | 基于 Winapp2.ini 规则安全扫描并清理选定的 Windows 应用缓存、临时文件和日志；先生成可审查计划，删除前必须明确确认。 |
+| 014 | [github-cli-setup](skills/github-cli-setup/) | 在 Windows 上检测、安装、定位、认证并验证 GitHub CLI，包括通过 WinGet 安装后的 PATH 刷新处理。 |
 
 每个目录都是自包含的 skill。部分 skill 会在 `SKILL.md` 之外附带脚本、模板、参考资料或 agent manifest。
 
@@ -91,11 +94,14 @@ jiapeng-skills/
 │  └─ Link-Skills.ps1
 ├─ skills/
 │  ├─ adobe-leave-organizations/
+│  ├─ browser-bookmark-manager/
+│  ├─ clean-windows-junk/
 │  ├─ clipvault/
 │  ├─ dev-setup/
 │  ├─ directory-lock-detector/
 │  ├─ dotnet-unused-code-audit/
 │  ├─ fix-uwp-proxy-loopback/
+│  ├─ github-cli-setup/
 │  ├─ publish-skill-to-repo/
 │  ├─ spec-driven-delivery/
 │  ├─ winget-package-publisher/

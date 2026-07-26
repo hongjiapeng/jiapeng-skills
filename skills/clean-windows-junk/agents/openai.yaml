@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clean Windows Junk"
+  short_description: "Safely scan and clean Windows cache files"
+  default_prompt: "Use $clean-windows-junk to scan Windows caches and prepare a safe cleanup plan."

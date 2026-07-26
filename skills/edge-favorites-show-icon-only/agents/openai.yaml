@@ -1,4 +1,0 @@
-interface:
-  display_name: "Edge Favorites Icon Only"
-  short_description: "Batch toggle Edge favorite icon-only labels"
-  default_prompt: "Use $edge-favorites-show-icon-only to investigate or batch enable icon-only favorites in Microsoft Edge on Windows."

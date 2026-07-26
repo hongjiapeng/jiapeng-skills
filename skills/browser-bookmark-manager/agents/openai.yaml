@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Bookmark Manager"
+  short_description: "Safely audit and optimize browser bookmarks"
+  default_prompt: "Use $browser-bookmark-manager to scan, audit, back up, restore, or safely optimize my Edge and Chrome bookmarks."

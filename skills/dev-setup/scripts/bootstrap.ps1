@@ -1,234 +1,440 @@
-# ============================================================
-# bootstrap.ps1  —— Windows 开发环境一键初始化脚本（通用模板）
-#
-# 用法：
-#   预览（不实际执行）：  .\bootstrap.ps1
-#   确认后执行：          .\bootstrap.ps1 -Execute
-#
-# ⚠️  这是开源模板，不含任何个人信息。
-#    请将此文件复制到你的私有 dotfiles 仓库，
-#    并在下方 CONFIG 区填入真实信息后使用。
-#
-# 后续维护：
-#   - 新增个人项目时，把 GitHub URL 加到 $PersonalRepos 里
-#   - 换新电脑时，直接运行私有版脚本即可复原环境
-# ============================================================
+#Requires -Version 5.1
 
+<#
+.SYNOPSIS
+Previews or applies a configuration-driven Windows development environment.
+
+.DESCRIPTION
+Reads machine-specific values from a PowerShell data file. The script performs a
+dry run unless -Execute is supplied. It never stores names, email addresses,
+repository URLs, or machine-specific paths in this public template.
+
+.PARAMETER ConfigPath
+Path to a PowerShell data file based on assets/config.example.psd1.
+
+.PARAMETER Step
+One or more stages to run: All, Directories, Git, or Repositories.
+
+.PARAMETER RootPath
+Optional command-line override for RootPath in the configuration file.
+
+.PARAMETER Execute
+Applies the planned changes. Without this switch, the script only previews them.
+
+.EXAMPLE
+.\bootstrap.ps1 -ConfigPath $PrivateConfigPath
+
+.EXAMPLE
+.\bootstrap.ps1 -ConfigPath $PrivateConfigPath -Step Directories -Execute
+#>
+
+[CmdletBinding()]
 param(
-    [switch]$Execute   # 不加此参数为 Dry Run 预览模式
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConfigPath,
+
+    [ValidateSet("All", "Directories", "Git", "Repositories")]
+    [string[]]$Step = @("All"),
+
+    [string]$RootPath,
+
+    [switch]$Execute
 )
 
-# ════════════════════════════════════════════════════════════
-# ✏️  CONFIG — 在你的私有 dotfiles 版本中填写以下信息
-# ════════════════════════════════════════════════════════════
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-# Git 身份
-$PersonalName  = "Your Name"                    # Git 提交显示的姓名
-$PersonalEmail = "you@personal.example.com"     # 个人 GitHub 邮箱
-$WorkEmail     = "you@company.example.com"      # 公司邮箱（Work 目录自动使用）
-
-# Personal\ 下的子目录分组 —— 按你自己的项目类别定义
-$SubDirs = @(
-    # "group-a",    # 例如：某个产品生态的所有项目
-    # "group-b",    # 例如：ai-tools
-    # "group-c",    # 例如：livestream
-    # TODO: 按需添加
-)
-
-# 个人项目列表 —— 每行一个 GitHub 仓库 URL
-$PersonalRepos = @(
-    # "https://github.com/your-username/repo-a",
-    # "https://github.com/your-username/repo-b",
-    # TODO: 逐步补充
-)
-
-# 仓库名关键字 → 子目录映射
-# 匹配规则：URL 包含 key 时自动放到对应子目录，否则放 Personal 根目录
-$RepoGroups = @{
-    # "keyword-a" = "group-a"
-    # "keyword-b" = "group-b"
-    # TODO: 按需添加
+function Write-Step {
+    param([string]$Message)
+    Write-Host "  -> $Message" -ForegroundColor Cyan
 }
 
-# ════════════════════════════════════════════════════════════
-# 以下为脚本逻辑，通常无需修改
-# ════════════════════════════════════════════════════════════
-
-$Root   = "C:\Dev"
-$DryRun = -not $Execute
-
-# ── 颜色输出辅助 ─────────────────────────────────────────────
-function Write-Step($msg) { Write-Host "  → $msg" -ForegroundColor Cyan }
-function Write-OK($msg)   { Write-Host "  ✓ $msg" -ForegroundColor Green }
-function Write-Skip($msg) { Write-Host "  - $msg" -ForegroundColor DarkGray }
-function Write-Warn($msg) { Write-Host "  ⚠ $msg" -ForegroundColor Yellow }
-function Write-Err($msg)  { Write-Host "  ✗ $msg" -ForegroundColor Red }
-
-# ── Banner ───────────────────────────────────────────────────
-Write-Host ""
-if ($DryRun) {
-    Write-Host "╔══════════════════════════════════════╗" -ForegroundColor Magenta
-    Write-Host "║   DEV SETUP  —  DRY RUN 预览模式     ║" -ForegroundColor Magenta
-    Write-Host "║   运行 -Execute 参数才会实际执行      ║" -ForegroundColor Magenta
-    Write-Host "╚══════════════════════════════════════╝" -ForegroundColor Magenta
-} else {
-    Write-Host "╔══════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║   DEV SETUP  —  正在初始化环境...    ║" -ForegroundColor Green
-    Write-Host "╚══════════════════════════════════════╝" -ForegroundColor Green
+function Write-Success {
+    param([string]$Message)
+    Write-Host "  [OK] $Message" -ForegroundColor Green
 }
-Write-Host ""
 
-# ── 配置完整性检查 ────────────────────────────────────────────
-if ($PersonalName -eq "Your Name" -or $PersonalEmail -match "example\.com") {
-    Write-Warn "检测到未修改的占位符配置！"
-    Write-Warn "请先编辑脚本顶部的 CONFIG 区填入真实信息，再运行 -Execute。"
+function Write-Skip {
+    param([string]$Message)
+    Write-Host "  [SKIP] $Message" -ForegroundColor DarkGray
+}
+
+function Write-WarningMessage {
+    param([string]$Message)
+    Write-Host "  [WARN] $Message" -ForegroundColor Yellow
+}
+
+function Get-OptionalValue {
+    param(
+        [hashtable]$Table,
+        [string]$Key,
+        $DefaultValue = $null
+    )
+
+    if ($null -ne $Table -and $Table.ContainsKey($Key)) {
+        return $Table[$Key]
+    }
+
+    return $DefaultValue
+}
+
+function Resolve-ConfiguredPath {
+    param(
+        [string]$Value,
+        [string]$BasePath,
+        [string]$Label
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        throw "$Label must be configured."
+    }
+
+    $expanded = [Environment]::ExpandEnvironmentVariables($Value)
+    if (-not [IO.Path]::IsPathRooted($expanded)) {
+        $expanded = Join-Path $BasePath $expanded
+    }
+
+    return [IO.Path]::GetFullPath($expanded)
+}
+
+function Resolve-ChildPath {
+    param(
+        [string]$BasePath,
+        [string]$RelativePath,
+        [string]$Label
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) {
+        throw "$Label must be a non-empty relative path."
+    }
+
+    if ([IO.Path]::IsPathRooted($RelativePath)) {
+        throw "$Label must be relative to '$BasePath'."
+    }
+
+    $resolvedBase = [IO.Path]::GetFullPath($BasePath).TrimEnd("\", "/")
+    $resolvedChild = [IO.Path]::GetFullPath((Join-Path $resolvedBase $RelativePath))
+    $requiredPrefix = "$resolvedBase\"
+
+    if (-not $resolvedChild.StartsWith(
+            $requiredPrefix,
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+        throw "$Label resolves outside '$resolvedBase'."
+    }
+
+    return $resolvedChild
+}
+
+function Convert-ToGitPath {
+    param([string]$Path)
+    return ([IO.Path]::GetFullPath($Path).TrimEnd("\", "/").Replace("\", "/") + "/")
+}
+
+function Get-RepositoryName {
+    param([string]$Url)
+
+    if ([string]::IsNullOrWhiteSpace($Url)) {
+        throw "Each repository entry must define a non-empty Url."
+    }
+
+    $normalized = $Url.Trim().TrimEnd("/") -replace "\.git$", ""
+    $match = [regex]::Match($normalized, "([^/:]+)$")
+    if (-not $match.Success) {
+        throw "Unable to derive a repository name from '$Url'."
+    }
+
+    $name = $match.Groups[1].Value
+    if ($name.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0) {
+        throw "Repository name '$name' contains invalid file-name characters."
+    }
+
+    return $name
+}
+
+function Assert-Identity {
+    param(
+        [hashtable]$Identity,
+        [string]$Label
+    )
+
+    $name = [string](Get-OptionalValue -Table $Identity -Key "Name" -DefaultValue "")
+    $email = [string](Get-OptionalValue -Table $Identity -Key "Email" -DefaultValue "")
+    $hasName = -not [string]::IsNullOrWhiteSpace($name)
+    $hasEmail = -not [string]::IsNullOrWhiteSpace($email)
+
+    if ($hasName -xor $hasEmail) {
+        throw "$Label Git identity must provide both Name and Email."
+    }
+
+    return ($hasName -and $hasEmail)
+}
+
+function Invoke-Git {
+    param(
+        [string]$GitExecutable,
+        [string[]]$Arguments
+    )
+
+    & $GitExecutable @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git command failed with exit code $LASTEXITCODE."
+    }
+}
+
+$resolvedConfigPath = (Resolve-Path -LiteralPath $ConfigPath).Path
+$configDirectory = Split-Path -Parent $resolvedConfigPath
+$config = Import-PowerShellDataFile -LiteralPath $resolvedConfigPath
+
+if (-not ($config -is [hashtable])) {
+    throw "The configuration file must return a hashtable."
+}
+
+$configuredRootPath = [string](
+    Get-OptionalValue -Table $config -Key "RootPath" -DefaultValue ""
+)
+if (-not [string]::IsNullOrWhiteSpace($RootPath)) {
+    $configuredRootPath = $RootPath
+}
+
+$resolvedRootPath = Resolve-ConfiguredPath `
+    -Value $configuredRootPath `
+    -BasePath $configDirectory `
+    -Label "RootPath"
+
+$directories = Get-OptionalValue -Table $config -Key "Directories"
+if (-not ($directories -is [hashtable])) {
+    throw "Directories must be configured as a hashtable."
+}
+
+$workPath = Resolve-ChildPath `
+    -BasePath $resolvedRootPath `
+    -RelativePath ([string](Get-OptionalValue -Table $directories -Key "Work" -DefaultValue "")) `
+    -Label "Directories.Work"
+
+$personalPath = Resolve-ChildPath `
+    -BasePath $resolvedRootPath `
+    -RelativePath ([string](Get-OptionalValue -Table $directories -Key "Personal" -DefaultValue "")) `
+    -Label "Directories.Personal"
+
+$additionalDirectories = @(
+    Get-OptionalValue -Table $directories -Key "Additional" -DefaultValue @()
+)
+$personalGroups = @(
+    Get-OptionalValue -Table $directories -Key "PersonalGroups" -DefaultValue @()
+)
+
+$runAll = $Step -contains "All"
+$runDirectories = $runAll -or $Step -contains "Directories"
+$runGit = $runAll -or $Step -contains "Git"
+$runRepositories = $runAll -or $Step -contains "Repositories"
+$dryRun = -not $Execute
+
+Write-Host ""
+Write-Host "DEV SETUP - $(if ($dryRun) { 'DRY RUN' } else { 'APPLYING CHANGES' })" `
+    -ForegroundColor $(if ($dryRun) { "Magenta" } else { "Green" })
+Write-Host "Configuration: $resolvedConfigPath"
+Write-Host "Root: $resolvedRootPath"
+
+if ($runDirectories) {
     Write-Host ""
-    if ($Execute) {
-        Write-Err "已中止：请填写真实配置后重试。"
-        exit 1
+    Write-Host "Step: Directories" -ForegroundColor White
+
+    $plannedDirectories = @($workPath, $personalPath)
+    foreach ($relativePath in $additionalDirectories) {
+        $plannedDirectories += Resolve-ChildPath `
+            -BasePath $resolvedRootPath `
+            -RelativePath ([string]$relativePath) `
+            -Label "Directories.Additional"
     }
-}
-
-# ════════════════════════════════════════════════════════════
-# STEP 1 — 创建目录结构
-# ════════════════════════════════════════════════════════════
-Write-Host "📂 Step 1 — 创建目录结构" -ForegroundColor White
-
-$Dirs = @(
-    "$Root\Work",
-    "$Root\Personal"
-) + ($SubDirs | ForEach-Object { "$Root\Personal\$_" }) + @(
-    "$Root\Lab",
-    "$Root\Sandbox"
-)
-
-foreach ($dir in $Dirs) {
-    if (Test-Path $dir) {
-        Write-Skip "$dir  (已存在)"
-    } else {
-        Write-Step "创建 $dir"
-        if (-not $DryRun) {
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Write-OK "已创建"
-        }
+    foreach ($relativePath in $personalGroups) {
+        $plannedDirectories += Resolve-ChildPath `
+            -BasePath $personalPath `
+            -RelativePath ([string]$relativePath) `
+            -Label "Directories.PersonalGroups"
     }
-}
 
-# ════════════════════════════════════════════════════════════
-# STEP 2 — 配置 Git 身份
-# ════════════════════════════════════════════════════════════
-Write-Host ""
-Write-Host "🔑 Step 2 — 配置 Git 身份" -ForegroundColor White
-
-$GitConfigPath     = "$env:USERPROFILE\.gitconfig"
-$GitConfigWorkPath = "$env:USERPROFILE\.gitconfig-work"
-
-$MainConfig = @"
-[user]
-    name  = $PersonalName
-    email = $PersonalEmail
-
-[includeIf "gitdir:C:/Dev/Work/"]
-    path = ~/.gitconfig-work
-
-[core]
-    autocrlf = true
-
-[init]
-    defaultBranch = main
-"@
-
-$WorkConfig = @"
-[user]
-    email = $WorkEmail
-"@
-
-Write-Step "写入 ~/.gitconfig  (默认个人邮箱，Work 目录自动切换为公司邮箱)"
-Write-Step "写入 ~/.gitconfig-work  (公司邮箱)"
-
-if (-not $DryRun) {
-    Set-Content -Path $GitConfigPath     -Value $MainConfig -Encoding UTF8
-    Set-Content -Path $GitConfigWorkPath -Value $WorkConfig  -Encoding UTF8
-    Write-OK "Git 配置已写入"
-}
-
-# ════════════════════════════════════════════════════════════
-# STEP 3 — Clone 个人项目
-# ════════════════════════════════════════════════════════════
-Write-Host ""
-Write-Host "📥 Step 3 — Clone 个人项目" -ForegroundColor White
-
-if ($PersonalRepos.Count -eq 0) {
-    Write-Warn "PersonalRepos 列表为空，跳过 Clone 步骤"
-    Write-Warn "请在脚本顶部 CONFIG 区填入仓库 URL 后重新运行"
-} else {
-    $CloneOK = 0; $CloneFail = 0
-
-    foreach ($url in $PersonalRepos) {
-        # 从 URL 提取仓库名
-        $repoName = ($url -split "/")[-1] -replace "\.git$", ""
-
-        # 根据关键字决定目标子目录
-        $subDir = "Personal"
-        foreach ($key in $RepoGroups.Keys) {
-            if ($repoName -match $key -or $url -match $key) {
-                $subDir = "Personal\$($RepoGroups[$key])"
-                break
-            }
-        }
-
-        $cloneDest = "$Root\$subDir\$repoName"
-
-        if (Test-Path $cloneDest) {
-            Write-Skip "$repoName  →  $cloneDest  (已存在，跳过)"
+    foreach ($directory in $plannedDirectories | Select-Object -Unique) {
+        if (Test-Path -LiteralPath $directory) {
+            Write-Skip "$directory already exists"
             continue
         }
 
-        Write-Step "$repoName  →  $Root\$subDir\"
+        Write-Step "Create $directory"
+        if (-not $dryRun) {
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
+            Write-Success "Created $directory"
+        }
+    }
+}
 
-        if (-not $DryRun) {
-            Push-Location "$Root\$subDir"
-            git clone $url 2>&1 | Out-Null
-            if ($LASTEXITCODE -eq 0) {
-                Write-OK "Clone 成功"
-                $CloneOK++
-            } else {
-                Write-Err "Clone 失败：$url"
-                $CloneFail++
-            }
-            Pop-Location
+if ($runGit) {
+    Write-Host ""
+    Write-Host "Step: Git identities" -ForegroundColor White
+
+    $gitConfig = Get-OptionalValue -Table $config -Key "Git"
+    if (-not ($gitConfig -is [hashtable])) {
+        throw "Git must be configured as a hashtable when the Git step is selected."
+    }
+
+    $personalIdentity = Get-OptionalValue -Table $gitConfig -Key "Personal" -DefaultValue @{}
+    $workIdentity = Get-OptionalValue -Table $gitConfig -Key "Work" -DefaultValue @{}
+    if (-not ($personalIdentity -is [hashtable]) -or -not ($workIdentity -is [hashtable])) {
+        throw "Git.Personal and Git.Work must be hashtables."
+    }
+
+    $hasPersonalIdentity = Assert-Identity -Identity $personalIdentity -Label "Personal"
+    $hasWorkIdentity = Assert-Identity -Identity $workIdentity -Label "Work"
+    if (-not $hasPersonalIdentity -and -not $hasWorkIdentity) {
+        throw "Configure at least one complete Git identity before running the Git step."
+    }
+
+    $gitStorageValue = [string](
+        Get-OptionalValue -Table $gitConfig -Key "ConfigDirectory" -DefaultValue ""
+    )
+    if ([string]::IsNullOrWhiteSpace($gitStorageValue)) {
+        $localAppData = [Environment]::GetFolderPath("LocalApplicationData")
+        $gitStoragePath = Join-Path $localAppData "dev-setup"
+    } else {
+        $gitStoragePath = Resolve-ConfiguredPath `
+            -Value $gitStorageValue `
+            -BasePath $configDirectory `
+            -Label "Git.ConfigDirectory"
+    }
+
+    $personalConfigPath = Join-Path $gitStoragePath "gitconfig-personal"
+    $workConfigPath = Join-Path $gitStoragePath "gitconfig-work"
+    $plannedIdentities = @()
+
+    if ($hasPersonalIdentity) {
+        $plannedIdentities += @{
+            Label = "Personal"
+            Root = $personalPath
+            ConfigPath = $personalConfigPath
+            Identity = $personalIdentity
+        }
+    }
+    if ($hasWorkIdentity) {
+        $plannedIdentities += @{
+            Label = "Work"
+            Root = $workPath
+            ConfigPath = $workConfigPath
+            Identity = $workIdentity
         }
     }
 
-    if (-not $DryRun) {
-        Write-Host ""
-        Write-Host "  Clone 结果：成功 $CloneOK，失败 $CloneFail" `
-            -ForegroundColor $(if ($CloneFail -gt 0) { "Yellow" } else { "Green" })
+    foreach ($entry in $plannedIdentities) {
+        Write-Step (
+            "Configure {0} identity for repositories under {1}" -f
+            $entry.Label,
+            $entry.Root
+        )
+    }
+
+    if (-not $dryRun) {
+        $gitCommand = Get-Command git -CommandType Application -ErrorAction Stop
+        New-Item -ItemType Directory -Path $gitStoragePath -Force | Out-Null
+
+        foreach ($entry in $plannedIdentities) {
+            Invoke-Git -GitExecutable $gitCommand.Source -Arguments @(
+                "config",
+                "--file",
+                $entry.ConfigPath,
+                "user.name",
+                [string]$entry.Identity["Name"]
+            )
+            Invoke-Git -GitExecutable $gitCommand.Source -Arguments @(
+                "config",
+                "--file",
+                $entry.ConfigPath,
+                "user.email",
+                [string]$entry.Identity["Email"]
+            )
+
+            $includeCondition = Convert-ToGitPath -Path $entry.Root
+            $includeKey = "includeIf.gitdir:$includeCondition.path"
+            $includePath = $entry.ConfigPath.Replace("\", "/")
+            Invoke-Git -GitExecutable $gitCommand.Source -Arguments @(
+                "config",
+                "--global",
+                "--replace-all",
+                $includeKey,
+                $includePath
+            )
+            Write-Success "Configured $($entry.Label) Git identity"
+        }
     }
 }
 
-# ════════════════════════════════════════════════════════════
-# 完成汇总
-# ════════════════════════════════════════════════════════════
-Write-Host ""
-Write-Host "─────────────────────────────────────────" -ForegroundColor DarkGray
+if ($runRepositories) {
+    Write-Host ""
+    Write-Host "Step: Repositories" -ForegroundColor White
 
-if ($DryRun) {
-    Write-Host "预览完成。确认无误后运行：" -ForegroundColor Magenta
-    Write-Host "  .\bootstrap.ps1 -Execute" -ForegroundColor Magenta
-} else {
-    Write-Host "✅ 环境初始化完成！" -ForegroundColor Green
+    $repositories = @(Get-OptionalValue -Table $config -Key "Repositories" -DefaultValue @())
+    if ($repositories.Count -eq 0) {
+        Write-Skip "No repositories configured"
+    } else {
+        $gitCommand = $null
+        if (-not $dryRun) {
+            $gitCommand = Get-Command git -CommandType Application -ErrorAction Stop
+        }
+
+        $cloneFailures = 0
+        foreach ($repository in $repositories) {
+            if (-not ($repository -is [hashtable])) {
+                throw "Each repository entry must be a hashtable."
+            }
+
+            $url = [string](Get-OptionalValue -Table $repository -Key "Url" -DefaultValue "")
+            $destination = [string](
+                Get-OptionalValue -Table $repository -Key "Destination" -DefaultValue ""
+            )
+            $repositoryName = Get-RepositoryName -Url $url
+            $targetParent = $personalPath
+
+            if (-not [string]::IsNullOrWhiteSpace($destination)) {
+                $targetParent = Resolve-ChildPath `
+                    -BasePath $personalPath `
+                    -RelativePath $destination `
+                    -Label "Repositories.Destination"
+            }
+
+            $clonePath = Resolve-ChildPath `
+                -BasePath $targetParent `
+                -RelativePath $repositoryName `
+                -Label "Repository clone path"
+
+            if (Test-Path -LiteralPath $clonePath) {
+                Write-Skip "$clonePath already exists"
+                continue
+            }
+
+            Write-Step "Clone $url to $clonePath"
+            if ($dryRun) {
+                continue
+            }
+
+            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+            & $gitCommand.Source clone $url $clonePath
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Cloned $repositoryName"
+            } else {
+                Write-WarningMessage "Clone failed for $repositoryName"
+                $cloneFailures++
+            }
+        }
+
+        if ($cloneFailures -gt 0) {
+            throw "$cloneFailures repository clone operation(s) failed."
+        }
+    }
 }
 
-Write-Host @"
-
-📋 后续手动步骤：
-   1. 将公司项目 clone 到 C:\Dev\Work\（从公司 Git 服务器）
-   2. 安装运行时：Node.js / Python / .NET SDK（按需）
-   3. 登录 IDE 同步设置（VS Code Settings Sync / JetBrains）
-
-💡 提示：
-   - C:\Dev\Work\ 下的 Git 操作自动使用公司邮箱
-   - 其他目录默认使用个人邮箱
-   - 可用 git config user.email 在任意目录验证当前生效的身份
-"@ -ForegroundColor Yellow
+Write-Host ""
+if ($dryRun) {
+    Write-Host "Dry run complete. Review the plan, then rerun with -Execute." `
+        -ForegroundColor Magenta
+} else {
+    Write-Host "Development environment setup complete." -ForegroundColor Green
+}
