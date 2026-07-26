@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub CLI Setup"
+  short_description: "Install and authenticate GitHub CLI on Windows"
+  default_prompt: "Use $github-cli-setup to prepare GitHub CLI and verify authentication."
