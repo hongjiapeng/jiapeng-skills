@@ -87,8 +87,10 @@ Junctions are handled by the operating system at the filesystem layer; any progr
 
 ```text
 jiapeng-skills/
+├─ LICENSE
 ├─ README.md
 ├─ README.zh-CN.md
+├─ THIRD_PARTY_NOTICES.md
 ├─ scripts/
 │  ├─ Link-Skills.cmd
 │  └─ Link-Skills.ps1
@@ -109,3 +111,15 @@ jiapeng-skills/
 │  └─ windows-workstation-architect/
 └─ ...
 ```
+
+---
+
+## License
+
+Except where otherwise noted, the original code and documentation in this
+repository are licensed under the [MIT License](LICENSE).
+
+Third-party materials retain their respective licenses. In particular, the
+bundled Winapp2 rules are licensed under CC BY-SA 4.0. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution, provenance,
+and license details.

@@ -87,8 +87,10 @@ Junction 由操作系统在文件系统层处理，任何程序打开该路径�
 
 ```text
 jiapeng-skills/
+├─ LICENSE
 ├─ README.md
 ├─ README.zh-CN.md
+├─ THIRD_PARTY_NOTICES.md
 ├─ scripts/
 │  ├─ Link-Skills.cmd
 │  └─ Link-Skills.ps1
@@ -109,3 +111,14 @@ jiapeng-skills/
 │  └─ windows-workstation-architect/
 └─ ...
 ```
+
+---
+
+## 许可证
+
+除非另有说明，本仓库的原创代码和文档均采用
+[MIT License](LICENSE)。
+
+第三方材料继续遵循各自的许可证。其中，仓库内置的 Winapp2 规则采用
+CC BY-SA 4.0。署名、来源和许可证详情请参阅
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
