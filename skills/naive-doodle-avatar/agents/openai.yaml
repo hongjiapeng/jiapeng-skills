@@ -1,0 +1,14 @@
+interface:
+  display_name: naive doodle avatar
+  short_description: Transform one uploaded portrait into one matching naive-doodle
+    avatar image. Keep the same person, preserve key identity cues, and render in
+    a childlike fashion-doodle style.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
