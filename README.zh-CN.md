@@ -40,6 +40,7 @@
 | 012 | [browser-bookmark-manager](skills/browser-bookmark-manager/) | 在 Windows、macOS 和 Linux 上安全扫描、审计、去重、备份、恢复和优化 Edge/Chrome 书签，并通过字段 diff 验证 Edge 收藏栏“仅显示图标”。 |
 | 013 | [clean-windows-junk](skills/clean-windows-junk/) | 基于 Winapp2.ini 规则安全扫描并清理选定的 Windows 应用缓存、临时文件和日志；先生成可审查计划，删除前必须明确确认。 |
 | 014 | [github-cli-setup](skills/github-cli-setup/) | 在 Windows 上检测、安装、定位、认证并验证 GitHub CLI，包括通过 WinGet 安装后的 PATH 刷新处理。 |
+| 015 | [windows-microphone-diagnose](skills/windows-microphone-diagnose/) | 诊断 Windows 麦克风输入、录音端点状态、默认设备、静音、音量和访问权限；通过 Core Audio API 修复指定输入设备，支持操作预览及结果验证。 |
 
 每个目录都是自包含的 skill。部分 skill 会在 `SKILL.md` 之外附带脚本、模板、参考资料或 agent manifest。
 
@@ -108,6 +109,7 @@ jiapeng-skills/
 │  ├─ spec-driven-delivery/
 │  ├─ winget-package-publisher/
 │  ├─ windows-app-manager/
+│  ├─ windows-microphone-diagnose/
 │  └─ windows-workstation-architect/
 └─ ...
 ```

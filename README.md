@@ -40,6 +40,7 @@ This repo is used to:
 | 012 | [browser-bookmark-manager](skills/browser-bookmark-manager/) | Safely scan, audit, deduplicate, back up, restore, and optimize Edge and Chrome bookmarks across Windows, macOS, and Linux, including verified Edge Favorites bar icon-only display. |
 | 013 | [clean-windows-junk](skills/clean-windows-junk/) | Safely scan and clean selected Windows application caches, temporary files, and logs with Winapp2.ini rules, reviewable plans, and explicit confirmation before deletion. |
 | 014 | [github-cli-setup](skills/github-cli-setup/) | Detect, install, locate, authenticate, and verify GitHub CLI on Windows, including PATH refresh handling after WinGet installation. |
+| 015 | [windows-microphone-diagnose](skills/windows-microphone-diagnose/) | Diagnose Windows microphone input, recording endpoint states, default devices, mute, volume, and access settings; repair selected input devices through Core Audio APIs with previews and verified results. |
 
 Each folder is self-contained. Some skills include scripts, templates, references, or agent manifests alongside `SKILL.md`.
 
@@ -108,6 +109,7 @@ jiapeng-skills/
 │  ├─ spec-driven-delivery/
 │  ├─ winget-package-publisher/
 │  ├─ windows-app-manager/
+│  ├─ windows-microphone-diagnose/
 │  └─ windows-workstation-architect/
 └─ ...
 ```

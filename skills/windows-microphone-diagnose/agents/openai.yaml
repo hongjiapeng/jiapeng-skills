@@ -1,0 +1,4 @@
+interface:
+  display_name: "Windows 麦克风诊断与修复"
+  short_description: "检查 Windows 麦克风、默认输入及权限，通过 API 修复录音设备配置"
+  default_prompt: "使用 $windows-microphone-diagnose 检查我的麦克风为何无法录音，并按需要修复。"
