@@ -1,14 +1,6 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [string[]]$PackageNames = @(
-        'Microsoft.WindowsStore',
-        'Microsoft.StorePurchaseApp',
-        'Microsoft.DesktopAppInstaller',
-        'Microsoft.XboxIdentityProvider',
-        'Microsoft.GamingServices',
-        'Microsoft.XboxGamingOverlay',
-        'Microsoft.Xbox.TCUI'
-    ),
+    [string[]]$PackageNames = @(),
     [switch]$ResetStore,
     [switch]$ImportWinHttpProxy,
     [switch]$ResetWinHttpProxy
@@ -16,6 +8,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if ($ImportWinHttpProxy -and $ResetWinHttpProxy) {
+    throw 'Choose either -ImportWinHttpProxy or -ResetWinHttpProxy, not both.'
+}
 
 function Write-Section {
     param([string]$Title)
@@ -49,7 +45,7 @@ function Add-LoopbackExemption {
     param([Parameter(Mandatory = $true)][string]$PackageFamilyName)
 
     $target = "LoopbackExempt $PackageFamilyName"
-    if ($PSCmdlet.ShouldProcess($target, 'Add UWP loopback exemption')) {
+    if ($PSCmdlet.ShouldProcess($target, 'Add AppContainer loopback exemption')) {
         $output = & "$env:WINDIR\System32\CheckNetIsolation.exe" LoopbackExempt -a "-n=$PackageFamilyName" 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "Failed to add $PackageFamilyName. Output: $output"
@@ -69,7 +65,11 @@ $packages = foreach ($name in $PackageNames) {
 }
 
 if (-not $packages) {
-    Write-Warning 'No target Appx packages were found for the current user.'
+    if ($PackageNames.Count -eq 0) {
+        Write-Host 'Diagnostic mode: pass -PackageNames to repair selected installed packages.'
+    } else {
+        Write-Warning 'No target Appx packages were found for the current user.'
+    }
 } else {
     $packages |
         Sort-Object Name -Unique |
@@ -93,7 +93,7 @@ if ($added -eq 0 -and $packages) {
     Write-Host 'No exemptions were added. Re-run without -WhatIf if this was a dry run.' -ForegroundColor Yellow
 }
 
-if ($ResetStore) {
+if ($ResetStore -and $PSCmdlet.ShouldProcess('Microsoft Store', 'Close Store processes and run wsreset.exe')) {
     Write-Section 'Resetting Microsoft Store cache'
     $storeProcesses = @('WinStore.App', 'WinStore.Mobile', 'MicrosoftStore')
     Get-Process -ErrorAction SilentlyContinue |
@@ -128,4 +128,4 @@ Write-Section 'Current WinHTTP proxy'
 netsh winhttp show proxy
 
 Write-Host ''
-Write-Host 'Done. Reopen the affected UWP app and test again.' -ForegroundColor Green
+Write-Host 'Done. If changes were applied, retry the affected app and verify the original symptom.' -ForegroundColor Green

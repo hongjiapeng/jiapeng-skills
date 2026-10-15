@@ -31,7 +31,7 @@ This repo is used to:
 | 003 | [dev-setup](skills/dev-setup/) | Bootstrap or reorganize a Windows development workstation with a configurable directory layout, directory-scoped Git identities, dry-run previews, and optional repository cloning. |
 | 004 | [directory-lock-detector](skills/directory-lock-detector/) | Detect which process is locking or occupying a Windows directory using WMI and PowerShell module scanning. |
 | 005 | [dotnet-unused-code-audit](skills/dotnet-unused-code-audit/) | Audit C#/.NET and Visual Studio repositories for conservative unused-code cleanup candidates, stale projects, unreachable solution graph nodes, and generated artifacts. |
-| 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | Diagnose and repair Windows UWP/AppContainer app failures caused by local proxy loopback restrictions. |
+| 006 | [fix-uwp-proxy-loopback](skills/fix-uwp-proxy-loopback/) | Diagnose local proxy isolation affecting Windows apps and Teams/Office sign-in brokers; repair only the implicated component. |
 | 007 | [publish-skill-to-repo](skills/publish-skill-to-repo/) | Publish a local Codex skill into a Git repository while keeping Codex skill discovery working through junctions and validation checks. |
 | 008 | [windows-app-manager](skills/windows-app-manager/) | Controlled Windows app management, currently powered by winget. Supports safe search, show, download, install, upgrade, uninstall, installed-app resolution, and upgrade listing with structured JSON output. |
 | 009 | [windows-workstation-architect](skills/windows-workstation-architect/) | Design a clean, safe, role-aware Windows workstation structure for partitions, folders, work/personal separation, media, backups, sync, and multi-computer setups. |

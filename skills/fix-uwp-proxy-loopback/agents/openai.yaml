@@ -1,4 +1,4 @@
 interface:
-  display_name: "Fix UWP Proxy Loopback"
-  short_description: "Repair Microsoft Store and UWP proxy loopback"
-  default_prompt: "Use $fix-uwp-proxy-loopback to diagnose and repair Microsoft Store or UWP apps failing behind v2RayN or local proxies."
+  display_name: "Fix Windows App Proxy Loopback"
+  short_description: "Fix local proxy isolation for apps and sign-in brokers"
+  default_prompt: "Use $fix-uwp-proxy-loopback to diagnose local proxy isolation affecting Windows apps or Teams/Office sign-in, then repair only the implicated component."
