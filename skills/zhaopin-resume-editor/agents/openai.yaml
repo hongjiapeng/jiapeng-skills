@@ -1,0 +1,4 @@
+interface:
+  display_name: "智联招聘简历优化与回填"
+  short_description: "读取、优化并回填智联在线简历，逐项保存、刷新校验并提供结果截图"
+  default_prompt: "使用 $zhaopin-resume-editor，根据真实经历优化智联简历，并按我的要求回填和核验。"

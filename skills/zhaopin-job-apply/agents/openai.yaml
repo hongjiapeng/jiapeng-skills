@@ -1,0 +1,4 @@
+interface:
+  display_name: "智联岗位投递"
+  short_description: "使用Playwright CLI批量投递产品与需求分析岗位，核验结果、去重并跨日续投"
+  default_prompt: "使用 $zhaopin-job-apply，读取当前工作目录的投递记录，按已有求职意向继续在智联招聘投递，优先关注英语相关岗位。"

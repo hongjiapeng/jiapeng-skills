@@ -41,6 +41,8 @@ This repo is used to:
 | 013 | [clean-windows-junk](skills/clean-windows-junk/) | Safely scan and clean selected Windows application caches, temporary files, and logs with Winapp2.ini rules, reviewable plans, and explicit confirmation before deletion. |
 | 014 | [github-cli-setup](skills/github-cli-setup/) | Detect, install, locate, authenticate, and verify GitHub CLI on Windows, including PATH refresh handling after WinGet installation. |
 | 015 | [windows-microphone-diagnose](skills/windows-microphone-diagnose/) | Diagnose Windows microphone input, recording endpoint states, default devices, mute, volume, and access settings; repair selected input devices through Core Audio APIs with previews and verified results. |
+| 016 | [zhaopin-job-apply](skills/zhaopin-job-apply/) | Review Zhaopin job listings, prepare user-approved application batches, verify submissions, and maintain resumable application records. |
+| 017 | [zhaopin-resume-editor](skills/zhaopin-resume-editor/) | Rewrite and update a Zhaopin resume from verified experience, then confirm saved changes on the site. |
 
 Each folder is self-contained. Some skills include scripts, templates, references, or agent manifests alongside `SKILL.md`.
 
@@ -110,7 +112,9 @@ jiapeng-skills/
 │  ├─ winget-package-publisher/
 │  ├─ windows-app-manager/
 │  ├─ windows-microphone-diagnose/
-│  └─ windows-workstation-architect/
+│  ├─ windows-workstation-architect/
+│  ├─ zhaopin-job-apply/
+│  └─ zhaopin-resume-editor/
 └─ ...
 ```
 
