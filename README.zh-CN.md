@@ -43,6 +43,7 @@
 | 015 | [windows-microphone-diagnose](skills/windows-microphone-diagnose/) | 诊断 Windows 麦克风输入、录音端点状态、默认设备、静音、音量和访问权限；通过 Core Audio API 修复指定输入设备，支持操作预览及结果验证。 |
 | 016 | [zhaopin-job-apply](skills/zhaopin-job-apply/) | 筛选智联招聘职位、准备经用户授权的投递批次、核实投递结果，并维护可续办记录。 |
 | 017 | [zhaopin-resume-editor](skills/zhaopin-resume-editor/) | 基于核实过的经历改写并回填智联招聘简历，检查保存结果。 |
+| 018 | [instaloader-photo-archive](skills/instaloader-photo-archive/) | 使用 Instaloader 归档 Instagram 公开账号照片，按帖子编号续传，并核验缺失与重复文件。 |
 
 每个目录都是自包含的 skill。部分 skill 会在 `SKILL.md` 之外附带脚本、模板、参考资料或 agent manifest。
 

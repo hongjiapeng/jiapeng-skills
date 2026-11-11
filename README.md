@@ -43,6 +43,7 @@ This repo is used to:
 | 015 | [windows-microphone-diagnose](skills/windows-microphone-diagnose/) | Diagnose Windows microphone input, recording endpoint states, default devices, mute, volume, and access settings; repair selected input devices through Core Audio APIs with previews and verified results. |
 | 016 | [zhaopin-job-apply](skills/zhaopin-job-apply/) | Review Zhaopin job listings, prepare user-approved application batches, verify submissions, and maintain resumable application records. |
 | 017 | [zhaopin-resume-editor](skills/zhaopin-resume-editor/) | Rewrite and update a Zhaopin resume from verified experience, then confirm saved changes on the site. |
+| 018 | [instaloader-photo-archive](skills/instaloader-photo-archive/) | Archive public Instagram profile photos with Instaloader, resume by shortcode, and audit missing or identical files. |
 
 Each folder is self-contained. Some skills include scripts, templates, references, or agent manifests alongside `SKILL.md`.
 
